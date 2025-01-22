@@ -37,12 +37,12 @@ power = RealValuedVar([on_fc], [], model2distr, label='P')
 
 # define events
 events: List[Event] = []
-for i in range(MIN_SPEED, MAX_SPEED, SPEED_RANGE):
-    if i < MAX_SPEED - SPEED_RANGE:
-        new_guard = '{}<=w<{}'.format(i, i + SPEED_RANGE)
-    else:
-        new_guard = '{}<=w'.format(i)
-    events.append(Event(new_guard, 'start', 'm_{}'.format(len(events))))
+for i in range(MIN_SPEED, MAX_SPEED, SPEED_RANGE):  # 0, 10, 7
+    if i < MAX_SPEED - SPEED_RANGE:  # 0
+        new_guard = '{}<=w<{}'.format(i, i + SPEED_RANGE)  # '0<=w<7'
+    else: # 7
+        new_guard = '{}<=w'.format(i)  # '7<=w'
+    events.append(Event(new_guard, 'start', 'm_{}'.format(len(events))))  # m_0, m_1
 
 spindle_off = Event('', 'stop', 'i_0')
 

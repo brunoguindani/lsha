@@ -20,9 +20,10 @@ events: list[Event] = []
 # We always assume that the metrics have the same order as in `signal_labels`
 for i in range(4 ** len(signal_labels) - 1):
     base4enc = base4(i+1)
-    # Build a list of four 2-char strings with metric label (1 char) + event label (1 char)
+    # Build a list of four or less 2-char strings, each with metric label (1 char) + event label (1 char)
+    # Events with zero, i.e., unchanged metric, are not included
     ev_list: list[str] = [l+e if e != '0' else '' for l, e in zip(signal_labels, base4enc)]
-    # Compress list into a single string and create event
+    # Compress list into a single string (adding a termination char) and create event
     ev_strg = ''.join(ev_list) + TERM_CHAR
     ev = Event('', ev_strg, ev_strg.lower())
     events.append(ev)

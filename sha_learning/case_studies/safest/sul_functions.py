@@ -7,10 +7,10 @@ from sha_learning.learning_setup.logger import Logger
 
 
 # We will always assume that the metrics (and lists of values) have the same order as in here
-metrics_to_labels = {'HeartRate' : 'HR', 'TotalLungVolume' : 'Vl', 'RespirationRate' : 'RR', 'OxygenSaturation': 'O2'}
+metrics_to_labels = {'HeartRate' : 'H', 'TotalLungVolume' : 'V', 'RespirationRate' : 'R', 'OxygenSaturation': 'O'}
 
-metric_to_low_high_values = {'HR': (70, 80), 'Vl': (1950, 2100),
-                             'RR': (10, 13), 'O2': (0.965, 0.99)}
+metrics_to_low_high_values = {'H': (70, 80), 'V': (1950, 2100),
+                             'R': (10, 13), 'O': (0.965, 0.99)}
 
 
 def transform_val(x: float, low: float, high: float) -> int:
@@ -24,7 +24,7 @@ def transform_val(x: float, low: float, high: float) -> int:
 
 def is_chg_pt(curr: list[float], prev: list[float]) -> bool:
     for metric, c, p in zip(metrics_to_labels.values(), curr, prev):
-        low, high = metric_to_low_high_values[metric]
+        low, high = metrics_to_low_high_values[metric]
         c_lab = transform_val(c, low, high)
         p_lab = transform_val(p, low, high)
         if c_lab != p_lab:
@@ -39,26 +39,25 @@ def label_event(events: list[Event], signals: list[SampledSignal], t: Timestamp)
             break
 
     # Collect signals at current and previous timestamp
-    print([s.label for s in signals])
     signals_t = []
     signals_tm1 = []
     for s in signals:
-        low, high = metric_to_low_high_values[s.label]
+        low, high = metrics_to_low_high_values[s.label]
         t_val = transform_val(s.points[idx_t].value, low=low, high=high)
         signals_t.append(t_val)
         tm1_val = transform_val(s.points[idx_t-1].value, low=low, high=high)
         signals_tm1.append(tm1_val)
-    print("curr:", signals_t, "prev:", signals_tm1)
+    # print("curr:", signals_t, "prev:", signals_tm1, "at", t)
 
-    # Build base-4 encoding of event. Output is a 4-char string where 0 means unchanged,
-    # whereas 1, 2, 3 means that curr has changed to that value
+    # Build base-4 encoding of event. Output is a 4-char string (plus termination char) where
+    # 0 means unchanged, 1, 2, 3 means that curr has changed to that value
     ev_strg = ''
     for curr, prev in zip(signals_t, signals_tm1):
         ev_strg += '0' if curr == prev else str(curr)
 
     ev_idx = int(ev_strg, 4) - 1
     identified_event = events[ev_idx]
-    print(ev_strg, "-> idx", ev_idx, "->", identified_event)
+    # print(ev_strg, "-> idx", ev_idx, "->", identified_event, "\n")
 
     return identified_event
 

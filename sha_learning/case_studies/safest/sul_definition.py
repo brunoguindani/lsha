@@ -27,7 +27,7 @@ for i in range(4 ** len(signal_labels) - 1):
     ev_strg = ''.join(ev_list) + TERM_CHAR
     ev = Event('', ev_strg, ev_strg.lower())
     events.append(ev)
-    print(i, base4enc, "->", ev)
+    # print(i, base4enc, "->", ev)
 
 # Define flow conditions
 def vol_model(interval: list[Timestamp], V_0: float) -> list[float]:
@@ -48,7 +48,7 @@ safest_cs = SystemUnderLearning([vol], events, parse_data, label_event, get_vol_
 
 
 
-test = True
+test = False
 if test:
     traces_folder = '/home/bruno/DEIB_Dropbox/safest/breathe_logs/processed_signals/'
     traces_files = os.listdir(traces_folder)

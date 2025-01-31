@@ -2,9 +2,10 @@ import os
 
 from sha_learning.case_studies.safest.sul_functions import label_event, parse_data, get_vol_param, is_chg_pt
 from sha_learning.case_studies.safest.sul_functions import metrics_to_labels
-from sha_learning.domain.lshafeatures import Event, NormalDistribution, Trace
-from sha_learning.domain.sigfeatures import Timestamp, SampledSignal
+from sha_learning.domain.lshafeatures import Event, NormalDistribution, TimedTrace, Trace
+from sha_learning.domain.sigfeatures import ChangePoint, Timestamp, SampledSignal
 from sha_learning.domain.sulfeatures import SystemUnderLearning, RealValuedVar, FlowCondition
+from sha_learning.learning_setup.teacher import Teacher
 
 
 signal_labels: list[str] = list(metrics_to_labels.values())
@@ -38,14 +39,12 @@ fc = FlowCondition(0, vol_model)
 model2distr = {0: []}
 vol = RealValuedVar([fc], [], model2distr, label='V')
 
-# indexes of default model (flow condition) and distribution when no events take place
-DEFAULT_MODEL = 0
-DEFAULT_DISTR = 0
+# Other args: CS name, list of event-determing signals, indexes of default model (flow condition)
+# and default distribution when no events take place
+args = {'name': 'safest', 'driver': signal_labels, 'default_m': 0, 'default_d': 0}
 
-args = {'name': 'energy', 'driver': signal_labels, 'default_m': DEFAULT_MODEL, 'default_d': DEFAULT_DISTR}
-
+# Initialize SUL object
 safest_cs = SystemUnderLearning([vol], events, parse_data, label_event, get_vol_param, is_chg_pt, args=args)
-
 
 
 test = False
@@ -53,17 +52,28 @@ if test:
     traces_folder = '/home/bruno/DEIB_Dropbox/safest/breathe_logs/processed_signals/'
     traces_files = os.listdir(traces_folder)
     traces_files.sort()
+
+    teacher = Teacher(safest_cs, start_dt='2025-01-01-00-00-00', end_dt='2025-01-01-00-01-00')
+
     for file in traces_files:
+        if file == '00.csv':  # which contains no events
+            continue
+
         print("Testing", file)
-        # testing data to signals conversion
+        # Testing data to signals conversion
         new_signals: list[SampledSignal] = parse_data(traces_folder + file)
-        # testing chg pts identification
-        chg_pts = safest_cs.find_chg_pts([sig for sig in new_signals if sig.label in signal_labels])
-        # testing event labeling
-        id_events = [label_event(events, new_signals, pt.t) for pt in chg_pts]  # [:10]]
-        # testing signal to trace conversion
+        # Testing chg pts identification
+        chg_pts: list[ChangePoint] = safest_cs.find_chg_pts([sig for sig in new_signals if sig.label in signal_labels])
+        # Testing event labeling
+        id_events: list[Event] = [label_event(events, new_signals, pt.t) for pt in chg_pts]
+        # Testing signal to trace conversion
         safest_cs.process_data(traces_folder + file)
-        trace = safest_cs.timed_traces[-1]
-        if file != '00.csv':  # which contains no events
-            print('{}\t{}\t{}\t{}'.format(file, Trace(tt=trace),
-                                          trace.t[-1].to_secs() - trace.t[0].to_secs(), len(trace)))
+        t_trace: TimedTrace = safest_cs.timed_traces[-1]
+        trace = Trace(tt=t_trace)
+        print('{}\t{}\t{}\t{}'.format(file, trace,
+                                      t_trace.t[-1].to_secs() - t_trace.t[0].to_secs(), len(trace)))
+        # Testing model identification and hypothesis testing queries
+        model = teacher.mi_query(trace)
+        distr = teacher.ht_query(trace, model)
+
+        print()

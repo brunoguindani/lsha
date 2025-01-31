@@ -4,7 +4,7 @@ from sha_learning.case_studies.safest.sul_functions import label_event, parse_da
 from sha_learning.case_studies.safest.sul_functions import metrics_to_labels
 from sha_learning.domain.lshafeatures import Event, NormalDistribution, TimedTrace, Trace
 from sha_learning.domain.sigfeatures import ChangePoint, Timestamp, SampledSignal
-from sha_learning.domain.sulfeatures import SystemUnderLearning, RealValuedVar, FlowCondition
+from sha_learning.domain.sulfeatures import SystemUnderLearning, RealValuedVar, FlowCondition, ProbDistribution
 from sha_learning.learning_setup.teacher import Teacher
 
 
@@ -59,7 +59,6 @@ if test:
         if file == '00.csv':  # which contains no events
             continue
 
-        print("Testing", file)
         # Testing data to signals conversion
         new_signals: list[SampledSignal] = parse_data(traces_folder + file)
         # Testing chg pts identification
@@ -70,10 +69,8 @@ if test:
         safest_cs.process_data(traces_folder + file)
         t_trace: TimedTrace = safest_cs.timed_traces[-1]
         trace = Trace(tt=t_trace)
-        print('{}\t{}\t{}\t{}'.format(file, trace,
-                                      t_trace.t[-1].to_secs() - t_trace.t[0].to_secs(), len(trace)))
         # Testing model identification and hypothesis testing queries
-        model = teacher.mi_query(trace)
-        distr = teacher.ht_query(trace, model)
-
-        print()
+        model: FlowCondition = teacher.mi_query(trace)
+        distr: ProbDistribution = teacher.ht_query(trace, model)
+        print('\t'.join([str(_) for _ in [file, trace, t_trace.t[-1].to_secs() - t_trace.t[0].to_secs(),
+                                          len(trace), model, distr]]))

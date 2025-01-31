@@ -10,7 +10,7 @@ from sha_learning.learning_setup.logger import Logger
 metrics_to_labels = {'HeartRate' : 'H', 'TotalLungVolume' : 'V', 'RespirationRate' : 'R', 'OxygenSaturation': 'O'}
 
 metrics_to_low_high_values = {'H': (70, 80), 'V': (1950, 2100),
-                             'R': (10, 13), 'O': (0.965, 0.99)}
+                             'R': (10, 13), 'O': (0.965, 0.976)}
 
 
 def transform_val(x: float, low: float, high: float) -> int:

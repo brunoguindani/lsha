@@ -63,7 +63,11 @@ def label_event(events: list[Event], signals: list[SampledSignal], t: Timestamp)
 
 
 def parse_data(path: str) -> list[SampledSignal]:
-    df = pd.read_csv(path, index_col='SimTime')
+    listdir = os.listdir(path)
+    if len(listdir) != 1:
+        raise RuntimeError(f"{path} contains {len(listdir)} files instead of 1")
+    file_path = os.path.join(path, listdir[0])
+    df = pd.read_csv(file_path, index_col='SimTime')
 
     signals = {key: SampledSignal([], label=lab) for key, lab in metrics_to_labels.items()}
 

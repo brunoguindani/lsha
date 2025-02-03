@@ -63,7 +63,8 @@ if test:
         # Testing signal to trace conversion
         safest_cs.process_data(traces_folder + file)
         trace = safest_cs.timed_traces[-1]
-        if file != '00.csv':  # which contains no events
+        print(file)
+        if file != 'SIM00':  # which contains no events
             print('{}\t{}\t{}\t{}'.format(file, Trace(tt=trace),
                                           trace.t[-1].to_secs() - trace.t[0].to_secs(), len(trace)))
 

@@ -53,12 +53,7 @@ if test:
     traces_files = os.listdir(traces_folder)
     traces_files.sort()
 
-    teacher = Teacher(safest_cs, start_dt='2025-01-01-00-00-00', end_dt='2025-01-01-00-01-00')
-
     for file in traces_files:
-        if file == '00.csv':  # which contains no events
-            continue
-
         # Testing data to signals conversion
         new_signals: list[SampledSignal] = parse_data(traces_folder + file)
         # Testing chg pts identification
@@ -67,10 +62,38 @@ if test:
         id_events: list[Event] = [label_event(events, new_signals, pt.t) for pt in chg_pts]
         # Testing signal to trace conversion
         safest_cs.process_data(traces_folder + file)
-        t_trace: TimedTrace = safest_cs.timed_traces[-1]
-        trace = Trace(tt=t_trace)
-        # Testing model identification and hypothesis testing queries
-        model: FlowCondition = teacher.mi_query(trace)
-        distr: ProbDistribution = teacher.ht_query(trace, model)
-        print('\t'.join([str(_) for _ in [file, trace, t_trace.t[-1].to_secs() - t_trace.t[0].to_secs(),
-                                          len(trace), model, distr]]))
+        trace = safest_cs.timed_traces[-1]
+        if file != '00.csv':  # which contains no events
+            print('{}\t{}\t{}\t{}'.format(file, Trace(tt=trace),
+                                          trace.t[-1].to_secs() - trace.t[0].to_secs(), len(trace)))
+
+    # Test segment identification
+    test_trace = Trace(safest_cs.traces[0][:1])
+    segments = safest_cs.get_segments(test_trace)
+
+    # Test model identification
+    teacher = Teacher(safest_cs, start_dt='2025-01-01-00-00-00', end_dt='2025-01-01-00-01-00')
+    identified_model: FlowCondition = teacher.mi_query(test_trace)
+    print(identified_model)
+
+    # Test distr identification
+    # Loop over traces from files
+    for i, trace in enumerate(teacher.timed_traces):
+        print("Trace", i)
+        # Loop over events in the trace
+        for j in range(len(trace.e)+1):
+            # Consider trace i up to its jth event
+            test_trace = Trace(safest_cs.traces[i][:j])
+            # Hypothesis testing
+            identified_distr: ProbDistribution = teacher.ht_query(test_trace, identified_model, save=True)
+    
+            segments = safest_cs.get_segments(test_trace)
+            avg_metrics = sum([teacher.sul.get_ht_params(segment, identified_model)
+                               for segment in segments]) / len(segments)
+    
+            try:
+                print('{}:\t{:.3f}->{}'.format(test_trace.events[-1].symbol, avg_metrics, identified_distr.params))
+            except IndexError:
+                print('{}:\t{:.3f}->{}'.format(test_trace, avg_metrics, identified_distr.params))
+
+        print()

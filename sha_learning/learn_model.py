@@ -48,11 +48,6 @@ HA_SAVE_PATH = config['SUL CONFIGURATION']['SHA_SAVE_PATH'].format(os.getcwd())
 SHA_NAME = '{}_{}'.format(CS, config['SUL CONFIGURATION']['CS_VERSION'])
 graphviz_sha = ha_pltr.to_graphviz(LEARNED_HA, SHA_NAME, HA_SAVE_PATH, view=True)
 
-# saving sha source to .txt file
-sha_source = graphviz_sha.source
-with open(HA_SAVE_PATH.format(os.getcwd()) + SHA_NAME + '_source.txt', 'w') as f:
-    f.write(sha_source)
-
 if config['DEFAULT']['PLOT_DISTR'] == 'True' and config['LSHA PARAMETERS']['HT_QUERY_TYPE'] == 'S':
     distr_hist(TEACHER.hist, SHA_NAME)
 

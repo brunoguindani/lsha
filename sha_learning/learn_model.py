@@ -28,7 +28,6 @@ config.sections()
 CS = 'safest'
 LOGGER = Logger('LSHA')
 
-
 SUL: SystemUnderLearning = safest_cs
 events_labels_dict = None
 TEACHER = Teacher(SUL, start_dt='2025-01-01-00-00-00', end_dt='2025-01-01-00-01-00')

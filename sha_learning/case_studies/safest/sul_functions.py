@@ -11,7 +11,7 @@ metrics_to_labels = {'HeartRate' : 'H', 'TotalLungVolume' : 'V', 'RespirationRat
 signal_labels = list(metrics_to_labels.values())
 
 metrics_to_low_high_values = {'H': (70, 80), 'V': (1950, 2100),
-                             'R': (10, 13), 'O': (0.965, 0.976)}
+                             'R': (10, 13.5), 'O': (0.965, 0.976)}
 
 ranges_to_transformed_values = {'low': 1, 'ok': 2, 'high': 3}
 trans_values = list(ranges_to_transformed_values.values())

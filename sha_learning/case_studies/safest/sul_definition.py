@@ -60,7 +60,7 @@ if test:
     segments = safest_cs.get_segments(test_trace)
 
     # Test model identification
-    teacher = Teacher(safest_cs, start_dt='2025-01-01-00-00-00', end_dt='2025-01-01-00-01-00')
+    teacher = Teacher(safest_cs, start_dt='2025-01-01-00-00-00', end_dt='2025-01-01-00-02-30')
     identified_model: FlowCondition = teacher.mi_query(test_trace)
     print(identified_model)
 

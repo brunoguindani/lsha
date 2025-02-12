@@ -30,7 +30,7 @@ LOGGER = Logger('LSHA')
 
 SUL: SystemUnderLearning = safest_cs
 events_labels_dict = None
-TEACHER = Teacher(SUL, start_dt='2025-01-01-00-00-00', end_dt='2025-01-01-00-01-00')
+TEACHER = Teacher(SUL, start_dt='2025-01-01-00-00-00', end_dt='2025-01-01-00-02-30')
 # start_dt, end_dt = start and end datetimes in string form
 # unused int args start_ts, end_ts = start and end times in seconds
 

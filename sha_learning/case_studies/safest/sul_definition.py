@@ -52,8 +52,9 @@ if test:
         trace = safest_cs.timed_traces[-1]
         print(file)
         if file != 'SIM00':  # which contains no events
-            print('{}\t{}\t{}\t{}'.format(file, Trace(tt=trace),
-                                          trace.t[-1].to_secs() - trace.t[0].to_secs(), len(trace)))
+            print(Trace(tt=trace))
+            # print('{}\t{}\t{}\t{}'.format(file, Trace(tt=trace),
+            #                               trace.t[-1].to_secs() - trace.t[0].to_secs(), len(trace)))
 
     # Test segment identification
     test_trace = Trace(safest_cs.traces[0][:1])

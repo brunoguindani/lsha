@@ -13,6 +13,13 @@ metric_to_low_high_values = {'HeartRate': (70, 80),
                              'OxygenSaturation': (0.965, 0.976),
 }
 
+label_to_metric = { 'HR': 'HeartRate',
+                  # (1950, 2100): 'TotalLungVolume',
+                    'TV': 'TidalVolume',
+                    'RR': 'RespirationRate',
+                    'CD': 'CarbonDioxide',
+                    'OX': 'OxygenSaturation',
+}
 
 
 def parse_log(log_file) -> pd.DataFrame:

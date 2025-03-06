@@ -16,6 +16,7 @@ for lab in signal_labels:
         ev = Event('', ev_strg, ev_strg.lower())
         print(len(events), "->", ev)
         events.append(ev)
+print()
 
 # Define flow conditions
 def vol_model(interval: list[Timestamp], V_0: float) -> list[float]:
@@ -24,7 +25,7 @@ def vol_model(interval: list[Timestamp], V_0: float) -> list[float]:
 fc = FlowCondition(0, vol_model)
 
 model2distr = {0: []}
-vol = RealValuedVar([fc], [], model2distr, label='V')
+vol = RealValuedVar([fc], [], model2distr, label='TV')
 
 # Other args: CS name, list of event-determing signals, indexes of default model (flow condition)
 # and default distribution when no events take place
@@ -36,7 +37,7 @@ safest_cs = SystemUnderLearning([vol], events, parse_data, label_event, get_vol_
 
 test = False
 if test:
-    traces_folder = '/home/bruno/DEIB_Dropbox/safest/breathe_logs/processed_signals/'
+    traces_folder = '/home/bruno/DEIB_Dropbox/safest/lsha/breathe_logs/processed_signals/'
     traces_files = os.listdir(traces_folder)
     traces_files.sort()
 
@@ -47,6 +48,7 @@ if test:
         chg_pts: list[ChangePoint] = safest_cs.find_chg_pts([sig for sig in new_signals if sig.label in signal_labels])
         # Testing event labeling
         id_events: list[Event] = [label_event(events, new_signals, pt.t) for pt in chg_pts]
+        print()
         # Testing signal to trace conversion
         safest_cs.process_data(traces_folder + file)
         trace = safest_cs.timed_traces[-1]

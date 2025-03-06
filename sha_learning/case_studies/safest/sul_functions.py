@@ -50,7 +50,7 @@ def label_event(events: list[Event], signals: list[SampledSignal], t: Timestamp)
         signals_t.append(t_val)
         tm1_val = transform_val(s.points[idx_t-1].value, low=low, high=high)
         signals_tm1.append(tm1_val)
-    print("curr:", signals_t, "prev:", signals_tm1, "at", t)
+    # print("curr:", signals_t, "prev:", signals_tm1, "at", t)
 
     for met, curr, prev in zip(signal_labels, signals_t, signals_tm1):
         if curr != prev:

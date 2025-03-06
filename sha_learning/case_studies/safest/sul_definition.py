@@ -48,13 +48,12 @@ if test:
         chg_pts: list[ChangePoint] = safest_cs.find_chg_pts([sig for sig in new_signals if sig.label in signal_labels])
         # Testing event labeling
         id_events: list[Event] = [label_event(events, new_signals, pt.t) for pt in chg_pts]
-        print()
         # Testing signal to trace conversion
         safest_cs.process_data(traces_folder + file)
         trace = safest_cs.timed_traces[-1]
         print(file)
         if file != 'SIM00':  # which contains no events
-            print(Trace(tt=trace))
+            print(Trace(tt=trace), "\n")
             # print('{}\t{}\t{}\t{}'.format(file, Trace(tt=trace),
             #                               trace.t[-1].to_secs() - trace.t[0].to_secs(), len(trace)))
 

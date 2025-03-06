@@ -7,7 +7,7 @@ import sys
 
 metric_to_low_high_values = {'HeartRate': (70, 80),
                              # 'TotalLungVolume': (1950, 2100),
-                             'TidalVolume': (200, 500),
+                             'TidalVolume': (350, 450),
                              'RespirationRate': (10, 13.5),
                              'CarbonDioxide': (45, 65),
                              'OxygenSaturation': (0.965, 0.976),

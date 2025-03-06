@@ -58,7 +58,7 @@ def label_event(events: list[Event], signals: list[SampledSignal], t: Timestamp)
             range_idx = list(trans_values).index(curr)
             ev_idx = len(trans_values) * met_idx + range_idx
             identified_event = events[ev_idx]
-            print(ev_idx, "->", identified_event)
+            # print(ev_idx, "->", identified_event)
             return identified_event
 
     raise ValueError(f"{signals_tm1} -> {signals_t} is not an event")

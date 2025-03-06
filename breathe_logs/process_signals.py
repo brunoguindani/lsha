@@ -29,6 +29,7 @@ def get_peak_smoothing_transformation() -> Callable[[pd.Series], pd.Series]:
       prev_peak = max(col.loc[0.00:10.00])
 
       ret_col = col.copy()
+      ret_col.iloc[0] = prev_peak
       for i in range(1, len(col)-1):
         if col.iloc[i] > col.iloc[i+1] and col.iloc[i] >= col.iloc[i-1]:
           # i.e. if i-th value is a peak wrt its previous and next points

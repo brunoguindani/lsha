@@ -12,7 +12,6 @@ metric_to_low_high_values = {'HeartRate': (65, 90),
                              'OxygenSaturation': (0.915, 0.99),
 }
 
-# Apparently stuff breaks down when changing the order of these metrics
 ventilator_metrics = ['FractionInspiredOxygen', 'RespirationRate_vent',
   'PositiveEndExpiratoryPressure', 'TidalVolume_vent']
 
@@ -23,8 +22,8 @@ label_to_metric = { 'hr': 'HeartRate',
                     'ox': 'OxygenSaturation',
                     'fiox': 'FractionInspiredOxygen', 
                     'peep': 'PositiveEndExpiratoryPressure',
-                    'rera': 'RespirationRate',
-                    'tvol': 'TidalVolume',
+                    'rera': 'RespirationRate_vent',
+                    'tvol': 'TidalVolume_vent',
 }
 
 

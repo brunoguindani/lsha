@@ -5,7 +5,8 @@ import os
 import pandas as pd
 import sys
 
-from parse_plot import metric_to_low_high_values, ventilator_metrics
+from parse_plot import metric_to_low_high_values, \
+                       patient_label_to_metric, ventilator_label_to_metric
 from parse_plot import display_dataframe
 
 values_to_colors = {2: 'green', 1: 'red', 3: 'red'}
@@ -73,7 +74,8 @@ if __name__ == '__main__':
   os.makedirs('labeled_signals', exist_ok=True)
   labeled_csv = os.path.join('labeled_signals', base_name + '.csv')
   png_file = os.path.join('labeled_signals', base_name + '.png')
-  patient_metrics = list(metric_to_low_high_values.keys())
+  patient_metrics = list(patient_label_to_metric.values())
+  ventilator_metrics = list(ventilator_label_to_metric.values())
 
   # Read signals
   df_in = pd.read_csv(input_csv, index_col='SimTime')

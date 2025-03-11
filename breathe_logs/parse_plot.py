@@ -12,18 +12,19 @@ metric_to_low_high_values = {'HeartRate': (65, 90),
                              'OxygenSaturation': (0.915, 0.99),
 }
 
-ventilator_metrics = ['FractionInspiredOxygen', 'RespirationRate_vent',
-  'PositiveEndExpiratoryPressure', 'TidalVolume_vent']
+patient_label_to_metric = {
+  'hr': 'HeartRate',
+  'tv': 'TidalVolume',
+  'rr': 'RespirationRate',
+  'cd': 'CarbonDioxide',
+  'ox': 'OxygenSaturation',
+}
 
-label_to_metric = { 'hr': 'HeartRate',
-                    'tv': 'TidalVolume',
-                    'rr': 'RespirationRate',
-                    'cd': 'CarbonDioxide',
-                    'ox': 'OxygenSaturation',
-                    'fiox': 'FractionInspiredOxygen', 
-                    'peep': 'PositiveEndExpiratoryPressure',
-                    'rera': 'RespirationRate_vent',
-                    'tvol': 'TidalVolume_vent',
+ventilator_label_to_metric = {
+  'fiox': 'FractionInspiredOxygen', 
+  'peep': 'PositiveEndExpiratoryPressure',
+  'rera': 'RespirationRate_vent',
+  'tvol': 'TidalVolume_vent',
 }
 
 
@@ -113,6 +114,5 @@ if __name__ == '__main__':
   df['TidalVolume'] = df['TidalVolume'].clip(upper=900)
   df.to_csv(csv_file)
 
-  patient_metrics = list(metric_to_low_high_values.keys())
-  all_metrics = patient_metrics + ventilator_metrics
+  all_metrics = (patient_label_to_metric | ventilator_label_to_metric).values()
   display_dataframe(df, metrics=all_metrics, file=png_file)

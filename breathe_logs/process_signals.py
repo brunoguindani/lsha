@@ -5,8 +5,8 @@ import os
 import pandas as pd
 import sys
 
-from parse_plot import display_dataframe, metric_to_low_high_values
-
+from parse_plot import metric_to_low_high_values, ventilator_metrics
+from parse_plot import display_dataframe
 
 values_to_colors = {2: 'green', 1: 'red', 3: 'red'}
 
@@ -73,20 +73,24 @@ if __name__ == '__main__':
   os.makedirs('labeled_signals', exist_ok=True)
   labeled_csv = os.path.join('labeled_signals', base_name + '.csv')
   png_file = os.path.join('labeled_signals', base_name + '.png')
-  metrics = list(metric_to_low_high_values.keys())
+  patient_metrics = list(metric_to_low_high_values.keys())
 
+  # Read signals
   df_in = pd.read_csv(input_csv, index_col='SimTime')
-  print(df_in[metrics])
+  print(df_in[patient_metrics])
+  # Create processed signals
+  df_out = pd.concat((df_in[patient_metrics], df_in[ventilator_metrics]),
+                     axis=1)
   peak_smoothing = get_peak_smoothing_transformation()
-  df_out = df_in[metrics].copy()
   df_out['CarbonDioxide'] = peak_smoothing(df_out['CarbonDioxide'])
   print(df_out)
   os.makedirs(processed_csv_folder, exist_ok=True)
   df_out.to_csv(processed_csv)
   print("DataFrame saved to", processed_csv)
-  df_labels = apply_transformations(df_out, metrics).astype(int)
+  df_labels = apply_transformations(df_out, patient_metrics)
   print(df_labels)
   df_labels.to_csv(labeled_csv)
   print("DataFrame saved to", labeled_csv)
   df_colors = df_labels.replace(values_to_colors)
-  display_dataframe(df_in, metrics=metrics, colors=df_colors, file=png_file)
+  display_dataframe(df_in, metrics=patient_metrics, colors=df_colors,
+                           file=png_file)

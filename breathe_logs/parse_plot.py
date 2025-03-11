@@ -5,20 +5,26 @@ import re
 import sys
 
 
-metric_to_low_high_values = {'HeartRate': (70, 80),
-                             # 'TotalLungVolume': (1950, 2100),
-                             'TidalVolume': (350, 450),
-                             'RespirationRate': (10, 13.5),
-                             'CarbonDioxide': (45, 65),
-                             'OxygenSaturation': (0.965, 0.976),
+metric_to_low_high_values = {'HeartRate': (65, 90),
+                             'TidalVolume': (300, 600),
+                             'RespirationRate': (10, 17),
+                             'CarbonDioxide': (40, 65),
+                             'OxygenSaturation': (0.915, 0.99),
 }
 
-label_to_metric = { 'HR': 'HeartRate',
-                  # (1950, 2100): 'TotalLungVolume',
-                    'TV': 'TidalVolume',
-                    'RR': 'RespirationRate',
-                    'CD': 'CarbonDioxide',
-                    'OX': 'OxygenSaturation',
+# Apparently stuff breaks down when changing the order of these metrics
+ventilator_metrics = ['FractionInspiredOxygen', 'RespirationRate_vent',
+  'PositiveEndExpiratoryPressure', 'TidalVolume_vent']
+
+label_to_metric = { 'hr': 'HeartRate',
+                    'tv': 'TidalVolume',
+                    'rr': 'RespirationRate',
+                    'cd': 'CarbonDioxide',
+                    'ox': 'OxygenSaturation',
+                    'fiox': 'FractionInspiredOxygen', 
+                    'peep': 'PositiveEndExpiratoryPressure',
+                    'rera': 'RespirationRate',
+                    'tvol': 'TidalVolume',
 }
 
 
@@ -26,36 +32,56 @@ def parse_log(log_file) -> pd.DataFrame:
   with open(log_file, 'r') as file:
     content = file.read()
 
+  # Use regex to extract sections
   pattern = r"---------------------------\n(.*?)\n---------------------------"
   matches = re.findall(pattern, content, re.DOTALL)
 
-  # Parse each block
   data = []
   for match in matches:
-    # Extract key-value pairs
     block_data = {}
+    feature_counts = {}
+
     for line in match.split('\n'):
       if ': ' in line:
         key, value = line.split(': ', 1)
+        key = key.strip()
+        value = value.strip()
+
+        # Ensure numerical values are correctly converted
         try:
-          block_data[key.strip()] = float(value.replace('cmH2O', '').strip())
+          value = float(value.replace('L/min', '')
+                              .replace('cmH2O', '')
+                              .replace('mL', '')
+                              .replace('/min', '')
+                              .replace('s', ''))
         except ValueError:
-          pass
+          pass  # Keep as string if conversion fails
+
+        # Handle duplicate feature names
+        if key in feature_counts:
+          feature_counts[key] += 1
+          key = f"{key}_vent"  # Append '_vent' to second occurrence
+        else:
+          feature_counts[key] = 1
+
+        block_data[key] = value
+
     data.append(block_data)
 
   # Convert to DataFrame
-  df = pd.DataFrame(data).round(4)
-  df.set_index('SimTime', inplace=True) 
+  df = pd.DataFrame(data)
+  df.set_index('SimTime', inplace=True)
   return df
 
 
 def display_dataframe(df_, metrics: list[str] | None = None,
                            colors: pd.DataFrame | None = None,
                            file: str | None = None) -> None:
+  print("Preparing dataset for", file)
   df = df_ if metrics is None else df_[metrics]
   numcols = df.shape[1]
 
-  fig, axes = plt.subplots(numcols, 1, figsize=(12, 10))
+  fig, axes = plt.subplots(numcols, 1, figsize=(12, 18))
   if colors is None:
     plot_colors = plt.get_cmap('Set1')
   for i in range(numcols):
@@ -72,7 +98,7 @@ def display_dataframe(df_, metrics: list[str] | None = None,
     plt.show()
   else:
     fig.savefig(file)
-    print("Plot saved to", file)
+    print("Plot saved to", file, "\n")
 
 
 if __name__ == '__main__':
@@ -81,7 +107,13 @@ if __name__ == '__main__':
   os.makedirs('signals', exist_ok=True)
   png_file = os.path.join('signals', base_name + '.png')
   csv_file = os.path.join('signals', base_name + '.csv')
-  metrics = list(metric_to_low_high_values.keys())
+
   df = parse_log(log_file)
+  # Remove outliers
+  df['RespirationRate'] = df['RespirationRate'].clip(upper=40)
+  df['TidalVolume'] = df['TidalVolume'].clip(upper=900)
   df.to_csv(csv_file)
-  display_dataframe(df, metrics=metrics, file=png_file)
+
+  patient_metrics = list(metric_to_low_high_values.keys())
+  all_metrics = patient_metrics + ventilator_metrics
+  display_dataframe(df, metrics=all_metrics, file=png_file)

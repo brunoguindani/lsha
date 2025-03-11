@@ -45,3 +45,21 @@ def save_data(symbols, distr, obstable: ObsTable, traces, time, sha_name, events
 
     f.write(content)
     f.close()
+
+
+def save_data_compact(ha, distr, sha_name: str, path: str):
+    SAVE_PATH = config['SUL CONFIGURATION']['REPORT_SAVE_PATH'].format(path) + sha_name + '.log'
+    content = ''
+    # Export edges and locations
+    for edge in ha.edges:
+        content += f'{edge.start.name} -> {edge.dest.name} ({edge.sync})\n'
+    for loc in ha.locations:
+        content += f'{loc.name}: {loc.flow_cond}\n'
+    # Export distributions
+    for i, d in enumerate(distr[0]):
+        try:
+            content += 'N_{}({:.6f}, {:.6f})\n'.format(i, d.params['avg'], d.params['var'])
+        except KeyError:
+            content += 'D_{}({:.6f})\n'.format(i, d.params['avg'])
+    with open(SAVE_PATH, 'w') as f:
+        f.write(content)

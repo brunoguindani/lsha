@@ -1,7 +1,7 @@
 import os
 
 from sha_learning.case_studies.safest.sul_functions import label_event, parse_data, get_vol_param, is_chg_pt
-from sha_learning.case_studies.safest.sul_functions import signal_labels, trans_values
+from sha_learning.case_studies.safest.sul_functions import patient_metrics, signal_labels, trans_values
 from sha_learning.domain.lshafeatures import Event, NormalDistribution, TimedTrace, Trace
 from sha_learning.domain.sigfeatures import ChangePoint, Timestamp, SampledSignal
 from sha_learning.domain.sulfeatures import SystemUnderLearning, RealValuedVar, FlowCondition, ProbDistribution
@@ -16,6 +16,11 @@ for lab in signal_labels:
         ev = Event('', ev_strg, ev_strg.lower())
         print(len(events), "->", ev)
         events.append(ev)
+# Add ventilators ON and OFF events
+events.append(Event('', 'on.', 'on.'))
+print(len(events), "->", events[-1])
+events.append(Event('', 'off.', 'off.'))
+print(len(events), "->", events[-1])
 print()
 
 # Define flow conditions
@@ -25,7 +30,7 @@ def vol_model(interval: list[Timestamp], V_0: float) -> list[float]:
 fc = FlowCondition(0, vol_model)
 
 model2distr = {0: []}
-vol = RealValuedVar([fc], [], model2distr, label='TV')
+vol = RealValuedVar([fc], [], model2distr, label='tv')
 
 # Other args: CS name, list of event-determing signals, indexes of default model (flow condition)
 # and default distribution when no events take place
@@ -52,10 +57,7 @@ if test:
         safest_cs.process_data(traces_folder + file)
         trace = safest_cs.timed_traces[-1]
         print(file)
-        if file != 'SIM00':  # which contains no events
-            print(Trace(tt=trace), "\n")
-            # print('{}\t{}\t{}\t{}'.format(file, Trace(tt=trace),
-            #                               trace.t[-1].to_secs() - trace.t[0].to_secs(), len(trace)))
+        print(Trace(tt=trace), "\n")
 
     # Test segment identification
     test_trace = Trace(safest_cs.traces[0][:1])

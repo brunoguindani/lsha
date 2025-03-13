@@ -111,7 +111,7 @@ if __name__ == '__main__':
   df = parse_log(log_file)
   # Remove outliers
   df['RespirationRate'] = df['RespirationRate'].clip(upper=40)
-  df['TidalVolume'] = df['TidalVolume'].clip(upper=900)
+  df['TidalVolume'] = df['TidalVolume'].clip(upper=600)
   df.to_csv(csv_file)
 
   all_metrics = (patient_label_to_metric | ventilator_label_to_metric).values()

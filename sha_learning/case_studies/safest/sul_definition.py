@@ -18,9 +18,9 @@ for lab in signal_labels:
         events.append(ev)
 # Add ventilators ON and OFF events
 events.append(Event('', 'on.', 'on.'))
-print(len(events), "->", events[-1])
+print(len(events)-1, "->", events[-1])
 events.append(Event('', 'off.', 'off.'))
-print(len(events), "->", events[-1])
+print(len(events)-1, "->", events[-1])
 print()
 
 # Define flow conditions

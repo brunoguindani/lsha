@@ -280,7 +280,7 @@ def distr_hist(values: Dict[int, List[float]], name: str):
                       '{}_{}.txt'.format(name, 'histogram_values'), 'a') as f:
                 f.write('D_{}:\n'.format(i))
                 lines = [str(x) + '\n' for x in values[i][1]]
-                print(lines)
+                # print(lines)
                 f.writelines(lines)
     fig.savefig(os.environ['RES_PATH'] + SAVE_PATH + '{}_{}.pdf'.format(name, 'histograms'))
     del fig

@@ -20,6 +20,7 @@ UPP_OUT_PATH = config['TRACE GENERATION']['UPPAAL_OUT_PATH']
 SCRIPT_PATH = config['TRACE GENERATION']['UPPAAL_SCRIPT_PATH']
 
 SIM_LOGS_PATH = config['TRACE GENERATION']['SIM_LOGS_PATH']
+ONE_TRACE_PER_PATH = config['TRACE GENERATION']['ONE_TRACE_PER_PATH'] == 'True'
 LOG_FILES = ['humanFatigue.log', 'humanPosition.log']
 
 if CS == 'HRI':
@@ -224,8 +225,11 @@ class TraceGenerator:
                 self.processed_traces.add(sims[rand_sel])
                 paths.append(SIM_LOGS_PATH.format(CS) + '/' + sims[rand_sel])
             else:
-                paths.append(SIM_LOGS_PATH.format(os.environ['RES_PATH'],
-                                                  config['SUL CONFIGURATION']['CS_VERSION']) + '/' + sims[rand_sel] + '/')
+                path = SIM_LOGS_PATH.format(os.environ['RES_PATH'], config['SUL CONFIGURATION']['CS_VERSION']) + '/' + sims[rand_sel] + '/'
+                if path not in self.processed_traces:
+                    paths.append(path)
+                if ONE_TRACE_PER_PATH:
+                    self.processed_traces.add(path)
         # self.ONCE = True
         return paths
 

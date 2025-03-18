@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+  <declaration>broadcast chan hr1, hr2, hr3, tv1, tv2, tv3, rr1, rr2, rr3, cd1, cd2, cd3, ox1, ox2, ox3;
+broadcast chan on, off, fiox1, fiox2, fiox3, peep1, peep2, peep3, rera1, rera2, rera3, tvol1, tvol2, tvol3;
+clock tv = 400;
+bool cd_OK = true, hr_OK = true, ox_OK = true, rr_OK = true, tv_OK = true;
+double alpha = {alpha}, beta = {beta};
+double doctor_rate = {doctor_rate}, patient_rate = {patient_rate};
+double instant_action = 1000;</declaration>
+{doctor}  <template>
+    <name x="5" y="5">Patient</name>
+{locations}    <init ref="__init__"/>
+{transitions}  </template>
+  <system>doctor = Doctor();
+patient = Patient();
+system doctor, patient;</system>
+  <queries>
+    <query>
+      <formula>simulate[&lt;=200]{{tv}}</formula>
+      <comment/>
+    </query>
+    <query>
+      <formula>simulate[&lt;=200]{{patient.q_0}}</formula>
+      <comment/>
+    </query>
+    <query>
+      <formula>E&lt;&gt; patient.q_0</formula>
+    </query>
+  </queries>
+</nta>

@@ -368,7 +368,7 @@ class Teacher:
                                      not self.eqr_query(new_row, row, strict=True)]
                         LOGGER.info(f"of which strictly different (diff_rows) = {[str(_) for _ in diff_rows]}")
 
-                        if len(diff_rows) > 0:
+                        if len(eq_rows) == 0:  # !!!
                             # found non-closedness
                             LOGGER.warn("!! MISSED NON-CLOSEDNESS !!")
                             return prefix

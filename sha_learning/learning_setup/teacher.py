@@ -313,7 +313,7 @@ class Teacher:
         #         uq.append(w)
 
         for word in tqdm(uq, total=len(uq)):
-            LOGGER.info('Requesting new traces for {}'.format(str(word)))
+            # LOGGER.info('Requesting new traces for {}'.format(str(word)))
             for e in table.get_E():
                 self.TG.set_word(word + e)
                 path = self.TG.get_traces(n_resample)
@@ -338,6 +338,7 @@ class Teacher:
 
         S = table.get_S()
         low_S = table.get_low_S()
+        LOGGER.info(table.print())
 
         traces: List[Trace] = self.sul.traces
         not_counter: List[Trace] = []
@@ -346,6 +347,7 @@ class Teacher:
                 LOGGER.debug('Checking {}'.format(str(prefix)))
                 # prefix is still not in table
                 if prefix not in S and prefix not in low_S and prefix not in not_counter:
+                    LOGGER.info("Prefix not present: creating hypothetical new row")
                     # fills hypothetical new row
                     new_row = Row([])
                     for e_i, e_word in enumerate(table.get_E()):
@@ -356,24 +358,29 @@ class Teacher:
                             new_row.state.append(State([(id_model, id_distr)]))
                         else:
                             new_row.state.append(State([(None, None)]))
+                        LOGGER.info(f"new_row = {new_row}")
                     # if there are sufficient data to fill the new row
                     if new_row.is_populated():
                         eq_rows = [row for row in table.get_upper_observations() if self.eqr_query(new_row, row)]
+                        LOGGER.info(f"(Weakly) eq_rows = {[str(e) for e in eq_rows]}")
                         not_ambiguous = len(set(eq_rows)) <= 1
                         diff_rows = [row for row in eq_rows if
                                      not self.eqr_query(new_row, row, strict=True)]
+                        LOGGER.info(f"of which strictly different (diff_rows) = {[str(_) for _ in diff_rows]}")
 
                         if len(diff_rows) > 0:
                             # found non-closedness
                             LOGGER.warn("!! MISSED NON-CLOSEDNESS !!")
                             return prefix
                         elif not_ambiguous:
+                            LOGGER.info("new_row is not ambiguous: checking non-consistency")
                             # checks non-consistency only for rows that are not ambiguous
                             for s_i, s_word in enumerate(S):
                                 old_row = table.get_upper_observations()[s_i] if s_i < len(S) else \
                                     table.get_lower_observations()[s_i - len(S)]
                                 # finds weakly equal rows in S
                                 if self.eqr_query(old_row, new_row):
+                                    LOGGER.info(f"Weakly equal: {old_row} {new_row}")
                                     for event in self.sul.events:
                                         # if the hypothetical discriminating event is already in E
                                         discr_is_prefix = False
@@ -409,6 +416,9 @@ class Teacher:
                                         not_counter.append(prefix)
                         else:
                             not_counter.append(prefix)
+                else:
+                    LOGGER.info(f"{prefix} is not a counterexample")
+                LOGGER.info(f"not_counter = {len(not_counter)}")
         else:
             if CS in ['ENERGY', 'AUTO_TWIN'] and len(not_counter) > 0:
                 new_events = set([e.symbol for x in not_counter for e in x.events]) - \

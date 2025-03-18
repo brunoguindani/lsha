@@ -55,9 +55,10 @@ if test:
         id_events: list[Event] = [label_event(events, new_signals, pt.t) for pt in chg_pts]
         # Testing signal to trace conversion
         safest_cs.process_data(traces_folder + file)
-        trace = safest_cs.timed_traces[-1]
-        print(file)
-        print(Trace(tt=trace), "\n")
+        timed_trace = safest_cs.timed_traces[-1]
+        trace = Trace(tt=timed_trace)
+        print(file, len(trace))
+        print(trace, "\n")
 
     # Test segment identification
     test_trace = Trace(safest_cs.traces[0][:1])

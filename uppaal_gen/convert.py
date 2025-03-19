@@ -2,7 +2,6 @@ import numpy as np
 import os
 import re
 
-doctor_file = os.path.join('templates', 'doctor.xml')
 location_template_file = os.path.join('templates', 'location_template.xml')
 template_file = os.path.join('templates', 'safest_template.xml')
 transition_template_file = os.path.join('templates', 'transition_template.xml')
@@ -12,12 +11,13 @@ location_regex = r"(?P<name>\w+): (?P<flowcond>.+)"
 transition_regex = r"(?P<source>\w+) -> (?P<target>\w+) \((?P<label>[\w.]+)\)"
 
 
-def write_automaton(source_file: str, parameters: dict[str: float]):
+def write_automaton(source_file: str, doctor_path: str, output_path: str,
+                    parameters: dict[str: float]):
   # Read files into strings
   with open(template_file, 'r') as f, \
        open(location_template_file, 'r') as fl, \
        open(transition_template_file, 'r') as ft, \
-       open(doctor_file, 'r') as fd, open(source_file, 'r') as fs:
+       open(doctor_path, 'r') as fd, open(source_file, 'r') as fs:
     template = f.read()
     location_template = fl.read()
     transition_template = ft.read()
@@ -84,7 +84,6 @@ def write_automaton(source_file: str, parameters: dict[str: float]):
         transition_label += '?'
       # Initialize transition string
       location_value = distrib_values[ locations_distrib[target_name] ]
-      print(target_name, location_value)
       new_transition = transition_template.format(id=line.strip(),
         source=source_name, target=target_name, label=transition_label,
         ass_value=location_value, label_x=x, label_y=y, ass_x=x, ass_y=y+10)
@@ -94,16 +93,19 @@ def write_automaton(source_file: str, parameters: dict[str: float]):
   final_xml = template.format(doctor=doctor, locations=locations_strg,
                               transitions=transitions_strg, **parameters)
   print(final_xml)
-  file_name = os.path.split(source_file)[-1].replace('.log', '.xml')
-  output_path = os.path.join('generated', file_name)
   with open(output_path, 'w') as f:
     f.write(final_xml)
 
 
 if __name__ == '__main__':
-  name = 'safest_with_doctor_04d_delta1'
-  print(os.getcwd())
+  source_name = 'safest_04d_delta1'
   source_path = os.path.join('..', 'sha_learning', 'resources', 'learned_sha',
-                             name + '.log')
-  parameters = dict(alpha=0.7, beta=0.5, doctor_rate=0.2, patient_rate=0.2)
-  write_automaton(source_path, parameters)
+                             source_name + '.log')
+  doctor_name = 'doctor_AC_exp'
+  doctor_param = 0.2 if 'exp' in doctor_name else 10
+  doctor_path = os.path.join('templates', doctor_name + '.xml')
+  file_name = source_name + '_' + doctor_name + '.xml'
+  output_path = os.path.join('generated', file_name)
+  parameters = dict(alpha=0.7, beta=0.5, doctor_param=doctor_param,
+                    patient_param=0.2)
+  write_automaton(source_path, doctor_path, output_path, parameters)

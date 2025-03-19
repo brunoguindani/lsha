@@ -3,10 +3,10 @@
 <nta>
   <declaration>broadcast chan hr1, hr2, hr3, tv1, tv2, tv3, rr1, rr2, rr3, cd1, cd2, cd3, ox1, ox2, ox3;
 broadcast chan on, off, fiox1, fiox2, fiox3, peep1, peep2, peep3, rera1, rera2, rera3, tvol1, tvol2, tvol3;
-clock tv = 400;
-bool cd_OK = true, hr_OK = true, ox_OK = true, rr_OK = true, tv_OK = true;
+clock tv = 400, t;
+bool cd_OK = true, ox_OK = true, rr_OK = true, tv_OK = true;
 double alpha = {alpha}, beta = {beta};
-double doctor_rate = {doctor_rate}, patient_rate = {patient_rate};
+double doctor_param = {doctor_param}, patient_param = {patient_param};
 double instant_action = 1000;</declaration>
 {doctor}  <template>
     <name x="5" y="5">Patient</name>
@@ -17,15 +17,20 @@ patient = Patient();
 system doctor, patient;</system>
   <queries>
     <query>
-      <formula>simulate[&lt;=200]{{tv}}</formula>
-      <comment/>
+      <formula>simulate[&lt;=500]{{tv}}</formula>
+      <comment>Tidal volume over time</comment>
     </query>
     <query>
-      <formula>simulate[&lt;=200]{{patient.q_0}}</formula>
-      <comment/>
+      <formula>Pr[&lt;=500](&lt;&gt; (patient.q_1 || patient.q_2 || patient.q_4)) &gt;= 0.75 </formula>
+      <comment>Reachability of non-breathing location</comment>
     </query>
     <query>
-      <formula>E&lt;&gt; patient.q_0</formula>
+      <formula>Pr[&lt;=500](&lt;&gt; doctor.stable) &lt;= 0.75 </formula>
+      <comment>Reachability of patient stability</comment>
+    </query>
+    <query>
+      <formula>Pr[&lt;=500](&lt;&gt; (patient.q_1 || patient.q_2 || patient.q_4) &amp;&amp; t &gt;= 10) &gt;= 0.75 </formula>
+      <comment>Permanence time in non-breathing location</comment>
     </query>
   </queries>
 </nta>

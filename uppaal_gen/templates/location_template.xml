@@ -1,5 +1,5 @@
     <location id="{id}" x="{x}" y="{y}">
       <name x="{name_x}" y="{name_y}">{name}</name>
       <label kind="invariant" x="{inv_x}" y="{inv_y}">tv'==0</label>
-      <label kind="exponentialrate" x="{rate_x}" y="{rate_y}">patient_rate</label>
+      <label kind="exponentialrate" x="{rate_x}" y="{rate_y}">patient_param</label>
     </location>

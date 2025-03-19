@@ -2,5 +2,5 @@
       <source ref="{source}"/>
       <target ref="{target}"/>
       <label kind="synchronisation" x="{label_x}" y="{label_y}">{label}</label>
-      <label kind="assignment" x="{ass_x}" y="{ass_y}">tv={ass_value}</label>
+      <label kind="assignment" x="{ass_x}" y="{ass_y}">tv={ass_value}, t=0</label>
     </transition>

@@ -9,7 +9,6 @@
     </location>
     <location id="id2" x="450" y="-17">
       <name x="450" y="-8">monitoring</name>
-      <!-- <label kind="invariant" x="450" y="8">!(cd_OK &amp;&amp; ox_OK &amp;&amp; rr_OK &amp;&amp; tv_OK)</label> -->
       <label kind="exponentialrate" x="450" y="8">instant_action</label>
     </location>
     <location id="id3" x="59" y="-204">

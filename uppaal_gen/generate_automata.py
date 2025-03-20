@@ -10,6 +10,12 @@ distribution_regex = r'(?P<name>\w+)\((?P<value>-?\d+\.\d+)\)'
 location_regex = r"(?P<name>\w+): (?P<flowcond>.+)"
 transition_regex = r"(?P<source>\w+) -> (?P<target>\w+) \((?P<label>[\w.]+)\)"
 
+fixed_params = {
+  'patient_param': 0.2,
+  'query_upper_bound': 0.75,
+  'query_lower_bound': 0.75,
+}
+
 
 def write_automaton(source_file: str, doctor_path: str, output_path: str,
                     parameters: dict[str: float]):
@@ -92,9 +98,10 @@ def write_automaton(source_file: str, doctor_path: str, output_path: str,
   # Create and save XML
   final_xml = template.format(doctor=doctor, locations=locations_strg,
                               transitions=transitions_strg, **parameters)
-  print(final_xml)
+  # print(final_xml)
   with open(output_path, 'w') as f:
     f.write(final_xml)
+  print("Saved to", output_path)
 
 
 if __name__ == '__main__':
@@ -102,10 +109,8 @@ if __name__ == '__main__':
   source_path = os.path.join('..', 'sha_learning', 'resources', 'learned_sha',
                              source_name + '.log')
   doctor_name = 'doctor_AC_exp'
-  doctor_param = 0.2 if 'exp' in doctor_name else 10
   doctor_path = os.path.join('templates', doctor_name + '.xml')
   file_name = source_name + '_' + doctor_name + '.xml'
   output_path = os.path.join('generated', file_name)
-  parameters = dict(alpha=0.7, beta=0.5, doctor_param=doctor_param,
-                    patient_param=0.2)
+  parameters = {'alpha': 0.7, 'beta': 0.5, 'doctor_param': 0.2} | fixed_params
   write_automaton(source_path, doctor_path, output_path, parameters)

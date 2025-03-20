@@ -17,23 +17,15 @@ patient = Patient();
 system doctor, patient;</system>
   <queries>
     <query>
-      <formula>simulate[&lt;=500]{{tv}}</formula>
-      <comment>Tidal volume over time</comment>
-    </query>
-    <query>
-      <formula>Pr[&lt;=500](&lt;&gt; (patient.q_1 || patient.q_2 || patient.q_4)) &gt;= 0.75 </formula>
-      <comment>Reachability of non-breathing location</comment>
-    </query>
-    <query>
-      <formula>Pr[&lt;=500](&lt;&gt; doctor.stable) &lt;= 0.75 </formula>
+      <formula>Pr[&lt;=500](&lt;&gt; doctor.stable) &lt;= {query_upper_bound} </formula>
       <comment>Reachability of patient stability</comment>
     </query>
     <query>
-      <formula>Pr[&lt;=500](&lt;&gt; (patient.q_1 || patient.q_2 || patient.q_4) &amp;&amp; t &gt;= 10) &gt;= 0.75 </formula>
+      <formula>Pr[&lt;=500](&lt;&gt; (patient.q_1 || patient.q_2 || patient.q_4) &amp;&amp; t &gt;= 10) &gt;= {query_lower_bound} </formula>
       <comment>Permanence time in non-breathing location</comment>
     </query>
     <query>
-      <formula>Pr[&lt;=500](&lt;&gt; (cd_OK + ox_OK + rr_OK + tv_OK &lt;= 0)) &gt;= 0.75 </formula>
+      <formula>Pr[&lt;=500](&lt;&gt; (cd_OK + ox_OK + rr_OK + tv_OK == 0)) &gt;= {query_lower_bound} </formula>
       <comment>Proability of extremely critical health state</comment>
     </query>
   </queries>

@@ -12,9 +12,9 @@ transition_regex = r"(?P<source>\w+) -> (?P<target>\w+) \((?P<label>[\w.]+)\)"
 
 fixed_params = {
   'patient_param': 0.2,
-  'query_bound0': 0.99,
-  'query_bound1': 0.75,
-  'query_bound2': 0.50,
+  'query_bound0': 0.75,  # upper-bound prob for patient stability
+  'query_bound1': 0.85,  # lower-bound prob for long non-breathing period
+  'query_bound2': 0.90,  # lower-bound prob for critical health (sum of bools)
 }
 
 

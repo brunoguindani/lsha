@@ -12,8 +12,9 @@ transition_regex = r"(?P<source>\w+) -> (?P<target>\w+) \((?P<label>[\w.]+)\)"
 
 fixed_params = {
   'patient_param': 0.2,
-  'query_upper_bound': 0.75,
-  'query_lower_bound': 0.75,
+  'query_bound0': 0.99,
+  'query_bound1': 0.75,
+  'query_bound2': 0.50,
 }
 
 
@@ -84,15 +85,21 @@ def write_automaton(source_file: str, doctor_path: str, output_path: str,
       transition_label = match.group('label').rstrip('.')
       if len(transition_label) == 3 and transition_label != 'off':
         # Transition of the form rr1 -> fired by patient
+        # Create bool assignment, like 'tv_ok=false'
+        bool_name = f'{transition_label[:-1]}_ok'
+        bool_val = 'true' if transition_label[-1] == '2' else 'false'
+        bool_assignment = f', {bool_name}={bool_val}'
         transition_label += '!'
       else:
         # Transition of the form rera3 -> listened by patient
+        bool_assignment = ''
         transition_label += '?'
       # Initialize transition string
       location_value = distrib_values[ locations_distrib[target_name] ]
       new_transition = transition_template.format(id=line.strip(),
         source=source_name, target=target_name, label=transition_label,
-        ass_value=location_value, label_x=x, label_y=y, ass_x=x, ass_y=y+10)
+        ass_value=location_value, label_x=x, label_y=y, ass_x=x, ass_y=y+10,
+        bool_assignment=bool_assignment)
       transitions_strg += new_transition
 
   # Create and save XML

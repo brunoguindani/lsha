@@ -37,22 +37,19 @@
       <source ref="id2"/>
       <target ref="id1"/>
       <label kind="synchronisation" x="255" y="8">rr1?</label>
-      <label kind="assignment" x="255" y="25">rr_OK=false</label>
       <nail x="255" y="8"/>
     </transition>
     <transition id="id11">
       <source ref="id2"/>
       <target ref="id1"/>
-      <label kind="synchronisation" x="204" y="-85">tv1?</label>
-      <label kind="assignment" x="204" y="-68">tv_OK=false</label>
+      <label kind="synchronisation" x="255" y="-76">tv1?</label>
       <nail x="425" y="-25"/>
       <nail x="263" y="-51"/>
     </transition>
     <transition id="id12">
       <source ref="id2"/>
       <target ref="id6"/>
-      <label kind="synchronisation" x="102" y="59">cd3?</label>
-      <label kind="assignment" x="102" y="76">cd_OK=false</label>
+      <label kind="synchronisation" x="187" y="59">cd3?</label>
     </transition>
     <transition id="id13">
       <source ref="id8"/>
@@ -80,13 +77,12 @@
     <transition id="id17">
       <source ref="id0"/>
       <target ref="id6"/>
-      <label kind="synchronisation" x="-59" y="68">cd3?</label>
-      <label kind="assignment" x="-59" y="85">cd_OK=false</label>
+      <label kind="synchronisation" x="-17" y="68">cd3?</label>
     </transition>
     <transition id="id18">
       <source ref="id2"/>
       <target ref="id5"/>
-      <label kind="guard" x="654" y="-35">cd_OK &amp;&amp; ox_OK &amp;&amp; rr_OK &amp;&amp; tv_OK</label>
+      <label kind="guard" x="654" y="-35">cd_ok &amp;&amp; ox_ok &amp;&amp; rr_ok &amp;&amp; tv_ok</label>
     </transition>
     <transition id="id19" controllable="false">
       <source ref="id4"/>
@@ -109,22 +105,19 @@
     <transition id="id22">
       <source ref="id0"/>
       <target ref="id1"/>
-      <label kind="synchronisation" x="34" y="17">rr1?</label>
-      <label kind="assignment" x="34" y="34">rr_OK=false</label>
+      <label kind="synchronisation" x="68" y="34">rr1?</label>
       <nail x="85" y="25"/>
     </transition>
     <transition id="id23">
       <source ref="id0"/>
       <target ref="id1"/>
-      <label kind="synchronisation" x="34" y="-93">tv1?</label>
-      <label kind="assignment" x="34" y="-76">tv_OK=false</label>
+      <label kind="synchronisation" x="68" y="-85">tv1?</label>
       <nail x="85" y="-59"/>
     </transition>
     <transition id="id24">
       <source ref="id2"/>
       <target ref="id3"/>
-      <label kind="synchronisation" x="110" y="-153">ox1?</label>
-      <label kind="assignment" x="110" y="-136">ox_OK=false</label>
+      <label kind="synchronisation" x="178" y="-127">ox1?</label>
       <nail x="246" y="-110"/>
     </transition>
     <transition id="id25">
@@ -135,8 +128,7 @@
     <transition id="id26">
       <source ref="id0"/>
       <target ref="id3"/>
-      <label kind="synchronisation" x="-68" y="-144">ox1?</label>
-      <label kind="assignment" x="-68" y="-127">ox_OK=false</label>
+      <label kind="synchronisation" x="-17" y="-127">ox1?</label>
     </transition>
     <transition id="id27">
       <source ref="id1"/>
@@ -146,32 +138,28 @@
     <transition id="id28">
       <source ref="id2"/>
       <target ref="id2"/>
-      <label kind="synchronisation" x="484" y="-76">cd2?</label>
-      <label kind="assignment" x="484" y="-59">cd_OK=true</label>
+      <label kind="synchronisation" x="484" y="-59">cd2?</label>
       <nail x="501" y="-25"/>
       <nail x="467" y="-51"/>
     </transition>
     <transition id="id29">
       <source ref="id2"/>
       <target ref="id2"/>
-      <label kind="synchronisation" x="484" y="-76">ox2?</label>
-      <label kind="assignment" x="484" y="-59">ox_OK=true</label>
+      <label kind="synchronisation" x="484" y="-59">ox2?</label>
       <nail x="501" y="-25"/>
       <nail x="467" y="-51"/>
     </transition>
     <transition id="id30">
       <source ref="id2"/>
       <target ref="id2"/>
-      <label kind="synchronisation" x="484" y="-76">rr2?</label>
-      <label kind="assignment" x="484" y="-59">rr_OK=true</label>
+      <label kind="synchronisation" x="484" y="-59">rr2?</label>
       <nail x="501" y="-25"/>
       <nail x="467" y="-51"/>
     </transition>
     <transition id="id31">
       <source ref="id2"/>
       <target ref="id2"/>
-      <label kind="synchronisation" x="484" y="-76">tv2?</label>
-      <label kind="assignment" x="484" y="-59">tv_OK=true</label>
+      <label kind="synchronisation" x="484" y="-59">tv2?</label>
       <nail x="501" y="-25"/>
       <nail x="467" y="-51"/>
     </transition>

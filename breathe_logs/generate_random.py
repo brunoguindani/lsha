@@ -45,9 +45,11 @@ def generate_random_signal(num_events: int, event_delta: float,
   init_row = df.loc[0.0].copy()
   prev_row = init_row.copy()
 
+  # Fill df with one row per event
   for i in range(num_events):
     curr_time += event_delta
     new_row = prev_row.copy()
+    # Make list of valid events and sample among them
     events = ventilator_on_states if ventilator_on else ventilator_off_states
     new_event = rng.choice(events)
     print(i, curr_time, new_event, end=" ")
@@ -60,10 +62,12 @@ def generate_random_signal(num_events: int, event_delta: float,
       new_row[ventilator_df_keys] = np.nan
       print()
     elif new_event in ventilator_events:
+      # Sample 1 (metric increased) or 3 (decreased)
       new_state = rng.choice(ventilator_new_states)
       new_row[new_event] += (+1 if new_state == 3 else -1)
       print(new_state)
     else:
+      # Choose among 1/2/3 (low/ok/high) but excluding the current value
       current_state = patient_events_to_states[new_event]
       valid_states = tuple(set(patient_states).difference({current_state}))
       new_state = rng.choice(valid_states)
@@ -87,10 +91,14 @@ def generate_random_signal(num_events: int, event_delta: float,
       patient_events_to_states[new_event] = new_state
       print(new_state)
 
+    # Write new row and store it as previous row
     df.loc[curr_time] = new_row
     prev_row = new_row.copy()
 
-  new_index = np.arange(df.index[0], df.index[-1]+row_delta, row_delta)
+  # Set correct sample frequency (no events happen in newly added rows).
+  # Note that there needs to be a row after the last event to prevent an empty
+  # segment (hence the 2 in the next line)
+  new_index = np.arange(df.index[0], df.index[-1]+2*row_delta, row_delta)
   df_new = df.fillna(np.inf).reindex(new_index).ffill().replace(np.inf, np.nan)
   df_new.to_csv(output_path)
   print("Saved to", output_path)

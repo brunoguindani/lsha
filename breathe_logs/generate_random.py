@@ -2,9 +2,12 @@ import numpy as np
 import os
 import pandas as pd
 
-rng = np.random.default_rng(seed=20250318)
+from parse_plot import metric_to_low_high_values
 
-row_delta = 0.04
+SHA_VAR_NAME = 'TidalVolume'
+SHA_VAR_BOUNDS = metric_to_low_high_values[SHA_VAR_NAME]
+
+rng = np.random.default_rng(seed=20250318)
 
 patient_states_to_values = {1: 0, 2: None, 3: 1000}
 patient_events_to_states = {
@@ -31,12 +34,14 @@ ventilator_on_states = list(patient_events) + ventilator_events
 ventilator_off_states = patient_events + ['on.']
 
 
-def generate_random_signal(base_name: str, num_events: int,
-                           event_delta: float):
+def generate_random_signal(num_events: int, event_delta: float,
+                           row_delta: float, output_path: str):
   ventilator_on = False
   curr_time = 0.0
 
-  df = pd.read_csv('initial_state.csv', index_col='SimTime')
+  dir_path = os.path.dirname(os.path.realpath(__file__))
+  init_path = os.path.join(dir_path, 'initial_state.csv')
+  df = pd.read_csv(init_path, index_col='SimTime')
   init_row = df.loc[0.0].copy()
   prev_row = init_row.copy()
 
@@ -44,27 +49,42 @@ def generate_random_signal(base_name: str, num_events: int,
     curr_time += event_delta
     new_row = prev_row.copy()
     events = ventilator_on_states if ventilator_on else ventilator_off_states
-    event = rng.choice(events)
-    print(i, curr_time, event, end=" ")
-    if event == 'on.':
+    new_event = rng.choice(events)
+    print(i, curr_time, new_event, end=" ")
+    if new_event == 'on.':
       ventilator_on = True
       new_row[ventilator_df_keys] = 0
       print()
-    elif event == 'off.':
+    elif new_event == 'off.':
       ventilator_on = False
       new_row[ventilator_df_keys] = np.nan
       print()
-    elif event in ventilator_events:
+    elif new_event in ventilator_events:
       new_state = rng.choice(ventilator_new_states)
-      new_row[event] += (+1 if new_state == 3 else -1)
+      new_row[new_event] += (+1 if new_state == 3 else -1)
       print(new_state)
     else:
-      current_state = patient_events_to_states[event]
+      current_state = patient_events_to_states[new_event]
       valid_states = tuple(set(patient_states).difference({current_state}))
       new_state = rng.choice(valid_states)
-      new_row[event] = (init_row[event] if new_state == 2 \
-                         else patient_states_to_values[new_state])
-      patient_events_to_states[event] = new_state
+      if new_event == SHA_VAR_NAME:
+        # Three cases to sample realistic value for modeled variable
+        if new_state == 2:
+          # Take original OK value
+          new_row[new_event] = init_row[new_event]
+        elif new_state == 1:
+          # Sample low value
+          new_row[new_event] = SHA_VAR_BOUNDS[0] * rng.random()
+        else:  # if new_state == 3:
+          # Sample high value
+          new_row[new_event] = 1 + SHA_VAR_BOUNDS[1]
+      elif new_state == 2:
+        # Take original OK value
+        new_row[new_event] = init_row[new_event]
+      else:
+        # Set low (0) or high (1000) value (value itself doesn't matter)
+        new_row[new_event] = patient_states_to_values[new_state]
+      patient_events_to_states[new_event] = new_state
       print(new_state)
 
     df.loc[curr_time] = new_row
@@ -72,16 +92,17 @@ def generate_random_signal(base_name: str, num_events: int,
 
   new_index = np.arange(df.index[0], df.index[-1]+row_delta, row_delta)
   df_new = df.fillna(np.inf).reindex(new_index).ffill().replace(np.inf, np.nan)
-  csv_folder = os.path.join('generated', base_name)
-  os.makedirs(csv_folder, exist_ok=True)
-  csv_path = os.path.join(csv_folder, base_name+'.csv')
-  df_new.to_csv(csv_path)
-  print("Saved to", csv_path)
+  df_new.to_csv(output_path)
+  print("Saved to", output_path)
 
 
 if __name__ == '__main__':
-  max_events = 100
-  event_delta = 5.0
+  max_events = 50
+  event_delta = 6.0
+  row_delta = 1.0
   for i in range(1, max_events+1):
-    base_name = f'SIM_zzz_generated_{str(i).zfill(3)}'
-    generate_random_signal(base_name, i, event_delta)
+    base_name = 'SIM' + str(i).zfill(3)
+    folder_path = os.path.join('generated', base_name)
+    os.makedirs(folder_path, exist_ok=True)
+    output_path = os.path.join(folder_path, base_name + '.csv')
+    generate_random_signal(i, event_delta, row_delta, output_path)

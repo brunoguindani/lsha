@@ -14,7 +14,7 @@ fixed_params = {
   'patient_param': 0.2,
   'query_bound0': 0.75,  # upper-bound prob for patient stability
   'query_bound1': 0.85,  # lower-bound prob for long non-breathing period
-  'query_bound2': 0.90,  # lower-bound prob for critical health (sum of bools)
+  'query_bound2': 0.95,  # lower-bound prob for critical health (sum of bools)
 }
 
 
@@ -108,7 +108,7 @@ def write_automaton(source_file: str, doctor_path: str, output_path: str,
   # print(final_xml)
   with open(output_path, 'w') as f:
     f.write(final_xml)
-  print("Saved to", output_path)
+  # print("Saved to", output_path)
 
 
 if __name__ == '__main__':

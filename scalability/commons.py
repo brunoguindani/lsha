@@ -9,7 +9,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), os.pardir))
 sys.path.append(os.path.join(os.path.dirname(__file__), os.pardir, 'breathe_logs'))
 from breathe_logs.generate_random import generate_random_signal
 
-output_csv_path = os.path.join(os.path.dirname(__file__), 'scalability.csv')
+output_csv_folder = os.path.join(os.path.dirname(__file__))
 batch_size = 5
 event_delta = 30.0
 row_delta = 1.0
@@ -17,8 +17,9 @@ row_delta = 1.0
 os.environ['RES_PATH'] = '/home/bruno/DEIB_Dropbox/safest/lsha/sha_learning/resources'
 root_folder = os.path.join('breathe_logs', 'generated')
 
-def write_to_log(*args):
-  with open(output_csv_path, 'a') as f:
+def write_to_log(log_name, *args):
+  file = os.path.join(output_csv_folder, log_name)
+  with open(file, 'a') as f:
     f.write(','.join([str(_) for _ in args]) + '\n')
 
 def count_locations_and_transitions(log_path: str) -> tuple[int, int]:

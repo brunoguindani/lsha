@@ -3,6 +3,7 @@ from commons import *
 max_traces = 50
 num_events = 20
 base_seed = int(sys.argv[1])
+log_file = 'traces.csv'
 
 shutil.rmtree(root_folder)
 
@@ -27,4 +28,4 @@ while current_traces < max_traces:
   max_usage = max(mem_usage)
   log_path = os.path.join('sha_learning', 'resources', 'learned_sha', 'scale_tests', sha_name+'.log')
   loc, trans = count_locations_and_transitions(log_path)
-  write_to_log(base_seed, current_traces, num_events, t, max_usage, loc, trans)
+  write_to_log(log_file, base_seed, current_traces, num_events, t, max_usage, loc, trans)

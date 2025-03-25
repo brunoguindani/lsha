@@ -51,20 +51,20 @@ def generate_random_signal(num_events: int, event_delta: float,
     # Make list of valid events and sample among them
     events = ventilator_on_states if ventilator_on else ventilator_off_states
     new_event = rng.choice(events)
-    print(i, curr_time, new_event, end=" ")
+    # print(i, curr_time, new_event, end=" ")
     if new_event == 'on.':
       ventilator_on = True
       new_row[ventilator_df_keys] = 0
-      print()
+      # print()
     elif new_event == 'off.':
       ventilator_on = False
       new_row[ventilator_df_keys] = np.nan
-      print()
+      # print()
     elif new_event in ventilator_events:
       # Sample 1 (metric increased) or 3 (decreased)
       new_state = rng.choice(ventilator_new_states)
       new_row[new_event] += (+1 if new_state == 3 else -1)
-      print(new_state)
+      # print(new_state)
     else:
       # Choose among 1/2/3 (low/ok/high) but excluding the current value
       current_state = patient_events_to_states[new_event]
@@ -88,7 +88,7 @@ def generate_random_signal(num_events: int, event_delta: float,
         # Set low (0) or high (1000) value (value itself doesn't matter)
         new_row[new_event] = patient_states_to_values[new_state]
       patient_events_to_states[new_event] = new_state
-      print(new_state)
+      # print(new_state)
 
     # Write new row and store it as previous row
     df.loc[curr_time] = new_row

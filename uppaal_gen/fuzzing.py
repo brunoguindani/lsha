@@ -23,6 +23,7 @@ class Fuzzer:
     self.population = []
 
   def parameters_to_model_file(self, doctor_params: params_type) -> str:
+    """Insert input params into a template file and save the Uppaal model"""
     source_name = 'safest_04d_delta1'
     output_basename = '04d_'
     source_path = os.path.join('..', 'sha_learning', 'resources',
@@ -38,28 +39,38 @@ class Fuzzer:
     return output_path
 
   def mutate_parameters(self, params: params_type) -> params_type:
+    """Mutate input params by applying a random mutation"""
+    # Randomly choose a parameter to mutate
     key = self.rng.choice(tuple(self.params_bounds.keys()))
     new_val = params[key]
-    if self.rng.random() < 0.5:  # heads or tails
-      new_val *= self.mutation_factor
+    # Apply small amount of noise to nominal mutation factor
+    factor = self.mutation_factor * self.rng.normal(loc=1.0, scale=0.01)
+    # Heads or tails to multiply or divide
+    if self.rng.random() < 0.5:
+      new_val *= factor
     else:
-      new_val /= self.mutation_factor
+      new_val /= factor
+    # Ensure that the parameter stays within its bounds
     new_val = np.clip(new_val, *self.params_bounds[key])
+    # Create output parameter dictionary
     out = params.copy()
     out[key] = new_val
     return out
 
   def get_random_parameters(self) -> params_type:
+    """Sample parameters uniformly randomly within their bounds"""
     out = {}
     for key, (lb, ub) in self.params_bounds.items():
-      out[key] = lb + (ub-lb)*self.rng.random()
+      out[key] = lb + (ub-lb) * self.rng.random()
     return out
 
   def sample_mutant(self) -> params_type:
+    """Choose and mutate a random mutant from `population`"""
     index = self.rng.integers(len(self.population))
     return self.mutate_parameters(self.population[index])
 
   def verify_query(self, model_file: str, query_idx: int, seed: int) -> bool:
+    """Return whether query `query_idx` from the Uppaal model is satisfied"""
     cmd = ['verifyta', model_file, '-q', '-r', str(seed), '--query-index',
            str(query_idx)]
     output = subprocess.run(cmd, capture_output=True, text=True).stdout
@@ -72,6 +83,7 @@ class Fuzzer:
                          + output)
 
   def count_verified_queries(self, model_file: str) -> int:
+    """Count number of queries within the Uppaal model that are satisfied"""
     verified_queries = 0
     for query_idx in range(self.num_queries):
       result = self.verify_query(model_file, query_idx, self.uppaal_seed)
@@ -81,6 +93,7 @@ class Fuzzer:
     return verified_queries
 
   def get_coverage(self, params: params_type) -> int:
+    """Utility method combining the other class methods"""
     model_file = self.parameters_to_model_file(params)
     return self.count_verified_queries(model_file)
 
@@ -88,10 +101,7 @@ class Fuzzer:
 
 def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
                                 seed: int) -> int:
-  """
-  If use_fuzzing is False, parameters will be sampled from a uniform random
-  distribution
-  """
+  """If use_fuzzing is False, parameters will be uniformly randomly sampled"""
   num_queries = 3
   iterations = 100
 
@@ -114,7 +124,7 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
 
 
 if __name__ == '__main__':
-  mutation_factors = [1.05, 1.1, 1.2, 1.25, 1.3]
+  mutation_factors = [1.05, 1.1, 1.2, 1.25, 1.5]
   base_seed = 20250320
   num_experiments = 5
 
@@ -124,4 +134,5 @@ if __name__ == '__main__':
       for i in range(num_experiments):
         pop = perform_fuzzing_experiments(mut, use_fuzzing, base_seed+i)
         populations.append(pop)
-      print(mut, use_fuzzing, np.mean(populations))
+      print(mut, use_fuzzing, *(populations), np.mean(populations),
+                                              np.std(populations), sep=',')

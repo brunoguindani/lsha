@@ -3,7 +3,7 @@
 <nta>
   <declaration>broadcast chan hr1, hr2, hr3, tv1, tv2, tv3, rr1, rr2, rr3, cd1, cd2, cd3, ox1, ox2, ox3;
 broadcast chan on, off, fiox1, fiox2, fiox3, peep1, peep2, peep3, rera1, rera2, rera3, tvol1, tvol2, tvol3;
-clock tv = 400, t;
+clock tv = 400, t, global_time = 0;
 bool cd_ok = true, hr_ok = true, ox_ok = true, rr_ok = true, tv_ok = true;
 double alpha = {alpha}, beta = {beta};
 double doctor_param = {doctor_param}, patient_param = {patient_param};
@@ -26,7 +26,15 @@ system doctor, patient;</system>
     </query>
     <query>
       <formula>Pr[&lt;=500](&lt;&gt; (cd_ok + ox_ok + rr_ok + tv_ok &lt;= 1)) &gt;= {query_bound2} </formula>
-      <comment>Proability of extremely critical health state</comment>
+      <comment>Probability of extremely critical health state</comment>
+    </query>
+    <query>
+      <formula>simulate[&lt;=500; 10]{{tv}}</formula>
+      <comment>Value of tidal volume</comment>
+    </query>
+    <query>
+      <formula>Pr[&lt;=500](&lt;&gt; doctor.stable) &lt;= 1.0 </formula>
+      <comment>Fake property for simulations</comment>
     </query>
   </queries>
 </nta>

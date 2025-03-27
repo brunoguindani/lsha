@@ -1,3 +1,4 @@
+from collections import defaultdict
 import numpy as np
 import os
 import re
@@ -18,10 +19,12 @@ class MutationFuzzer:
   PATIENT_PATH = os.path.join('..', 'sha_learning', 'resources',
                              'learned_sha', 'safest_04d_delta1.log')
   OUTPUT_ROOT = os.path.join('generated', 'fuzzing')
-  # Removing structural elements
   REMOVABLE_TRANS_IDS = [10, 11, 12, 13, 14, 15, 17, 19, 20, 21, 22, 23, 24,
                          26, 28, 29, 30, 31]
-  TRANS_REGEX = r'<transition id="id{trans_id}">.*?</transition>'
+  TRANS_XML_REGEX = r'<transition id="id{trans_id}">.*?</transition>'
+  DOC_XML_REGEX = r'<template>\s*<name[^>]*>\s*Doctor\s*</name>.*?</template>'
+  LOC_VERIF_REGEX = r'State:\s*\(.*?patient\.(\w+)\s*\)'
+  TRANS_VERIF_REGEX = r'Transition:\s*(patient\.\w+->patient\.\w+)'
 
   def __init__(self, num_queries: int, mutation_factor: float, seed: int):
     self.num_queries = num_queries
@@ -48,17 +51,18 @@ class MutationFuzzer:
     return output_path
 
   def get_params_from_file(self, file_path: str) -> params_type:
+    """Parse parameters from file name"""
     params_strg = os.path.split(file_path)[-1].split('__')[0]
     matches = re.findall(r'([a-zA-Z_]+)(\d+\.\d+)', params_strg)
     params = {k: float(v) for k, v in matches}
     return params
 
   def extract_doctor_from_file(self, file_path: str) -> str:
+    """Find doctor sub-template in file and write it to a new file"""
     with open(file_path, 'r') as f:
       text = f.read()
 
-    pattern = r"<template>\s*<name[^>]*>\s*Doctor\s*</name>.*?</template>"
-    match = re.search(pattern, text, re.DOTALL)
+    match = re.search(self.DOC_XML_REGEX, text, re.DOTALL)
     if match:
       doctor = match.group(0)
       new_file_name = os.path.split(file_path)[-1]
@@ -91,14 +95,20 @@ class MutationFuzzer:
     return out
 
   def remove_transition(self, model_file: str) -> str:
+    """
+    Mutate input model by randomly removing one among a list of transitions
+
+    Returns the path to the mutated model, or to the unchanged model if the
+    sampled transition is not present
+    """
     # Sample index of transition to remove
     index = self.rng.choice(self.REMOVABLE_TRANS_IDS)
     print("Removing transition", index)
 
-    # Read model and remove transition
+    # Read model and remove transition (if any)
     with open(model_file, 'r') as f:
       text = f.read()
-    pattern = self.TRANS_REGEX.format(trans_id=index)
+    pattern = self.TRANS_XML_REGEX.format(trans_id=index)
     new_text = re.sub(pattern, '', text, count=1, flags=re.DOTALL)
 
     # Save new model
@@ -116,7 +126,11 @@ class MutationFuzzer:
     return out
 
   def sample_and_mutate(self) -> str:
-    """Choose and mutate a random mutant from `population`"""
+    """
+    Choose and mutate a random mutant from the `population`
+
+    Parameter mutation and transition removal are equally likely mutations
+    """
     old_mutant = self.rng.choice(self.population)
 
     # Heads or tails to remove transition or mutate parameters
@@ -129,10 +143,47 @@ class MutationFuzzer:
     return new_mutant
 
   def store_mutant(self, mutant: str) -> None:
+    """Add mutant to the `population`"""
     self.population.append(mutant)
 
   def count_mutants(self) -> int:
+    """Return size of the stored `population`"""
     return len(self.population)
+
+  def compute_elements_coverage(self, model_file: str, seed: int,
+      num_runs: int) -> tuple[dict[str: int], dict[str: int]]:
+    """
+    Count average number of covered locations and transitions by executing and
+    checking `num_runs` traces
+    """
+    query_idx = 4  # index of fake property to execute simulations
+    location_counts = defaultdict(int)
+    transition_counts = defaultdict(int)
+    base_seed = str(seed)
+    suffix_len = len(str(num_runs)) + 1
+
+    for i in range(num_runs):
+      # Build command to execute
+      seed_i = base_seed + str(i).zfill(suffix_len)
+      cmd = ['verifyta', model_file, '-q', '-r', str(seed_i), '--query-index',
+             str(query_idx), '-t0']
+      # print(' '.join(cmd))
+      output = subprocess.run(cmd, capture_output=True, text=True).stdout
+      # Find and count coverage of locations and transitions
+      matches_loc = re.findall(self.LOC_VERIF_REGEX, output)
+      for loc in matches_loc:
+        location_counts[loc] += 1
+      matches_trans = re.findall(self.TRANS_VERIF_REGEX, output)
+      for trans in matches_trans:
+        transition_counts[trans] += 1
+
+    # Finally, compute averages
+    for loc in location_counts.keys():
+      location_counts[loc] /= num_runs
+    for trans in transition_counts.keys():
+      transition_counts[trans] /= num_runs
+
+    return location_counts, transition_counts
 
   def verify_query(self, model_file: str, query_idx: int, seed: int) -> bool:
     """Return whether query `query_idx` from the Uppaal model is satisfied"""
@@ -169,6 +220,7 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
   """If use_fuzzing is False, parameters will be uniformly randomly sampled"""
   num_queries = 3
   iterations = 100
+  runs_per_simul = 10
 
   # Initialize fuzzer and coverage
   fuzzer = MutationFuzzer(num_queries, mutation_factor, seed)
@@ -178,28 +230,22 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
   fuzzer.store_mutant(mutant)
   print(mutant)
 
-  # TODO this is just a test
-  for i in range(10):
-    new_mutant = fuzzer.sample_and_mutate()
-    print(new_mutant)
-    if i % 2 == 0:
-      fuzzer.store_mutant(new_mutant)
+  loc_counts, trans_counts = fuzzer.compute_elements_coverage(mutant, seed,
+                                                              runs_per_simul)
+  for loc, count in loc_counts.items():
+    print(f"{loc}: {count}")
 
-  return fuzzer.count_mutants()
+  for trans, count in trans_counts.items():
+    print(f"{trans}: {count}")
 
 
 
 if __name__ == '__main__':
-  mutation_factors = [1.05, 1.1, 1.2, 1.25, 1.5]
+  mutation_factor = 1.5
   seed = 20250320
   num_experiments = 5
 
-  for mut in mutation_factors:
-    for use_fuzzing in (False, True):
-      populations = []
-      for i in range(num_experiments):
-        pop = perform_fuzzing_experiments(mut, use_fuzzing, seed)
-        populations.append(pop)
-        seed += 1
-      print(mut, use_fuzzing, *(populations), np.mean(populations),
-                                              np.std(populations), sep=',')
+  for use_fuzzing in (False, True):
+    for i in range(num_experiments):
+      perform_fuzzing_experiments(mutation_factor, use_fuzzing, seed)
+      seed += 1

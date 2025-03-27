@@ -1,11 +1,12 @@
 import numpy as np
 import os
+import re
 import subprocess
 
 from generate_automata import fixed_params, write_automaton
 
 
-class Fuzzer:
+class MutationFuzzer:
   params_type = dict[str: float]
   params_bounds = {
     'alpha': (0, 1),
@@ -14,6 +15,13 @@ class Fuzzer:
   }
   SAT_STRG = '-- Formula is satisfied.'
   NOTSAT_STRG = '-- Formula is NOT satisfied.'
+  PATIENT_PATH = os.path.join('..', 'sha_learning', 'resources',
+                             'learned_sha', 'safest_04d_delta1.log')
+  OUTPUT_ROOT = os.path.join('generated', 'fuzzing')
+  # Removing structural elements
+  REMOVABLE_TRANS_IDS = [10, 11, 12, 13, 14, 15, 17, 19, 20, 21, 22, 23, 24,
+                         26, 28, 29, 30, 31]
+  TRANS_REGEX = r'<transition id="id{trans_id}">.*?</transition>'
 
   def __init__(self, num_queries: int, mutation_factor: float, seed: int):
     self.num_queries = num_queries
@@ -22,26 +30,51 @@ class Fuzzer:
     self.rng = np.random.default_rng(seed)
     self.population = []
 
-  def parameters_to_model_file(self, doctor_params: params_type) -> str:
+  def write_mutant(self, model_file: str, params: params_type) -> str:
     """Insert input params into a template file and save the Uppaal model"""
-    source_name = 'safest_04d_delta1'
-    output_basename = '04d_'
-    source_path = os.path.join('..', 'sha_learning', 'resources',
-                               'learned_sha', source_name + '.log')
-    doctor_name = 'doctor_AC_exp'
-    doctor_path = os.path.join('templates', doctor_name + '.xml')
-    all_params = doctor_params | fixed_params
-    params_strg = '_'.join([f'{k}{round(v, 3)}' \
-                           for k, v in doctor_params.items()])
-    output_name = output_basename + params_strg + '.xml'
-    output_path = os.path.join('generated', 'fuzzing', output_name)
-    write_automaton(source_path, doctor_path, output_path, all_params)
+    # Extract doctor from automaton file
+    doctor_file = self.extract_doctor_from_file(model_file)
+
+    # Convert params dict into string
+    all_params = params | fixed_params
+    params_strg = ''.join([f'{k}{round(v, 3)}' for k, v in params.items()])
+
+    # Build output file
+    model_name = os.path.split(doctor_file)[-1].replace('_doctor.xml', '.xml')
+    output_name_no_params = str(model_name).split('__')[-1]
+    output_name = params_strg + '__' + output_name_no_params
+    output_path = os.path.join(self.OUTPUT_ROOT, output_name)
+    write_automaton(self.PATIENT_PATH, doctor_file, output_path, all_params)
     return output_path
+
+  def get_params_from_file(self, file_path: str) -> params_type:
+    params_strg = os.path.split(file_path)[-1].split('__')[0]
+    matches = re.findall(r'([a-zA-Z_]+)(\d+\.\d+)', params_strg)
+    params = {k: float(v) for k, v in matches}
+    return params
+
+  def extract_doctor_from_file(self, file_path: str) -> str:
+    with open(file_path, 'r') as f:
+      text = f.read()
+
+    pattern = r"<template>\s*<name[^>]*>\s*Doctor\s*</name>.*?</template>"
+    match = re.search(pattern, text, re.DOTALL)
+    if match:
+      doctor = match.group(0)
+      new_file_name = os.path.split(file_path)[-1]
+      new_file_name = new_file_name.replace('.xml', '_doctor.xml')
+      new_file_path = os.path.join(self.OUTPUT_ROOT, new_file_name)
+      with open(new_file_path, 'w') as f:
+        f.write(doctor)
+      return new_file_path
+    else:
+      raise RuntimeError(f"Doctor not found in file {file_path}")
 
   def mutate_parameters(self, params: params_type) -> params_type:
     """Mutate input params by applying a random mutation"""
     # Randomly choose a parameter to mutate
     key = self.rng.choice(tuple(self.params_bounds.keys()))
+    print("Mutating parameter", key)
     new_val = params[key]
     # Apply small amount of noise to nominal mutation factor
     factor = self.mutation_factor * self.rng.normal(loc=1.0, scale=0.01)
@@ -57,6 +90,24 @@ class Fuzzer:
     out[key] = new_val
     return out
 
+  def remove_transition(self, model_file: str) -> str:
+    # Sample index of transition to remove
+    index = self.rng.choice(self.REMOVABLE_TRANS_IDS)
+    print("Removing transition", index)
+
+    # Read model and remove transition
+    with open(model_file, 'r') as f:
+      text = f.read()
+    pattern = self.TRANS_REGEX.format(trans_id=index)
+    new_text = re.sub(pattern, '', text, count=1, flags=re.DOTALL)
+
+    # Save new model
+    new_model_file = model_file.replace('.xml', f'_t{index}.xml')
+    with open(new_model_file, 'w') as f:
+      f.write(new_text)
+
+    return new_model_file
+
   def get_random_parameters(self) -> params_type:
     """Sample parameters uniformly randomly within their bounds"""
     out = {}
@@ -64,10 +115,24 @@ class Fuzzer:
       out[key] = lb + (ub-lb) * self.rng.random()
     return out
 
-  def sample_mutant(self) -> params_type:
+  def sample_and_mutate(self) -> str:
     """Choose and mutate a random mutant from `population`"""
-    index = self.rng.integers(len(self.population))
-    return self.mutate_parameters(self.population[index])
+    old_mutant = self.rng.choice(self.population)
+
+    # Heads or tails to remove transition or mutate parameters
+    if self.rng.random() < 0.5:
+      old_params = self.get_params_from_file(old_mutant)
+      new_params = self.mutate_parameters(old_params)
+      new_mutant = self.write_mutant(old_mutant, new_params)
+    else:
+      new_mutant = self.remove_transition(old_mutant)
+    return new_mutant
+
+  def store_mutant(self, mutant: str) -> None:
+    self.population.append(mutant)
+
+  def count_mutants(self) -> int:
+    return len(self.population)
 
   def verify_query(self, model_file: str, query_idx: int, seed: int) -> bool:
     """Return whether query `query_idx` from the Uppaal model is satisfied"""
@@ -94,7 +159,7 @@ class Fuzzer:
 
   def get_coverage(self, params: params_type) -> int:
     """Utility method combining the other class methods"""
-    model_file = self.parameters_to_model_file(params)
+    model_file = self.write_mutant(params)
     return self.count_verified_queries(model_file)
 
 
@@ -106,20 +171,21 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
   iterations = 100
 
   # Initialize fuzzer and coverage
-  fuzzer = Fuzzer(num_queries, mutation_factor, seed)
+  fuzzer = MutationFuzzer(num_queries, mutation_factor, seed)
+  initial_model = os.path.join('templates', 'doctor_AC_exp.xml')
   params = {k: (v[0] + v[1])/2 for k, v in fuzzer.params_bounds.items()}
-  coverage = fuzzer.get_coverage(params)
-  fuzzer.population.append(params)
+  mutant = fuzzer.write_mutant(initial_model, params)
+  fuzzer.store_mutant(mutant)
+  print(mutant)
 
-  for i in range(iterations):
-    params = fuzzer.sample_mutant() if use_fuzzing \
-                                    else fuzzer.get_random_parameters()
-    # print(params)
-    coverage = fuzzer.get_coverage(params)
-    if coverage > 0:
-      fuzzer.population.append(params)
+  # TODO this is just a test
+  for i in range(10):
+    new_mutant = fuzzer.sample_and_mutate()
+    print(new_mutant)
+    if i % 2 == 0:
+      fuzzer.store_mutant(new_mutant)
 
-  return len(fuzzer.population)
+  return fuzzer.count_mutants()
 
 
 

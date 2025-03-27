@@ -24,5 +24,6 @@ for col in column_labels:
   ax.fill_between(x_values, mean-std, mean+std, alpha=0.2)
 ax.grid()
 ax.legend()
+ax.set_xlabel(case)
 
 fig.savefig(f'{case}.svg', bbox_inches='tight')

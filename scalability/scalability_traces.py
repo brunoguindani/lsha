@@ -1,3 +1,5 @@
+import numpy as np
+
 from commons import *
 
 max_traces = 50
@@ -5,6 +7,7 @@ num_events = 20
 base_seed = int(sys.argv[1])
 log_file = 'traces.csv'
 
+rng = np.random.default_rng(base_seed)
 shutil.rmtree(root_folder)
 
 current_traces = 0
@@ -16,7 +19,8 @@ while current_traces < max_traces:
     folder_path = os.path.join(root_folder, base_name)
     os.makedirs(folder_path, exist_ok=True)
     output_path = os.path.join(folder_path, base_name + '.csv')
-    generate_random_signal(num_events, event_delta, row_delta, base_seed+i, output_path)
+    seed = rng.integers(20250000)
+    generate_random_signal(num_events, event_delta, row_delta, seed, output_path)
     current_traces += 1
 
   # Start LSHA with all current traces

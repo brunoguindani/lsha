@@ -125,14 +125,15 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
 
 if __name__ == '__main__':
   mutation_factors = [1.05, 1.1, 1.2, 1.25, 1.5]
-  base_seed = 20250320
+  seed = 20250320
   num_experiments = 5
 
   for mut in mutation_factors:
     for use_fuzzing in (False, True):
       populations = []
       for i in range(num_experiments):
-        pop = perform_fuzzing_experiments(mut, use_fuzzing, base_seed+i)
+        pop = perform_fuzzing_experiments(mut, use_fuzzing, seed)
         populations.append(pop)
+        seed += 1
       print(mut, use_fuzzing, *(populations), np.mean(populations),
                                               np.std(populations), sep=',')

@@ -211,14 +211,11 @@ class MutationFuzzer:
     else:
       raise RuntimeError(f"Confidence Interval not found in {output}")
 
-  def sum_probabilistic_queries(self, model_file: str, query_idxs: list[int]) \
-                                -> float:
-    """Sum distances computed in individual Uppaal queries"""
-    result = 0.0
-    for idx in query_idxs:
-      result += self.verify_query_prob(model_file, idx, self.uppaal_seed)
-      self.uppaal_seed += 1
-    return result
+  def eval_probabilistic_queries(self, model_file: str,
+                                 query_idxs: list[int]) -> list[float]:
+    """Evaluate probabilities computed in individual Uppaal queries"""
+    return [self.verify_query_prob(model_file, idx, self.uppaal_seed)
+            for idx in query_idxs]
 
   def count_verified_queries(self, model_file: str, query_idxs: list[int]) \
                              -> dict[int: int]:

@@ -26,7 +26,7 @@ system doctor, patient;</system>
     </query>
     <query>
       <formula>Pr[&lt;=500](&lt;&gt; (cd_ok + ox_ok + rr_ok + tv_ok &lt;= 1)) &gt;= {query_bound2} </formula>
-      <comment>Probability of extremely critical health state</comment>
+      <comment>Reachability of extremely critical health state</comment>
     </query>
     <query>
       <formula>simulate[&lt;=500; 10]{{tv}}</formula>
@@ -35,6 +35,22 @@ system doctor, patient;</system>
     <query>
       <formula>Pr[&lt;=500](&lt;&gt; doctor.stable) &lt;= 1.0 </formula>
       <comment>Fake property for simulations</comment>
+    </query>
+    <query>
+      <formula>simulate[&lt;=500; 10]{{tv}}</formula>
+      <comment>Value of tidal volume</comment>
+    </query>
+    <query>
+      <formula>Pr[&lt;=500](&lt;&gt; doctor.stable) </formula>
+      <comment>Probability of patient stability</comment>
+    </query>
+    <query>
+      <formula>Pr[&lt;=500](&lt;&gt; (patient.q_1 || patient.q_2 || patient.q_4) &amp;&amp; t &gt;= 10) </formula>
+      <comment>Probability of permanence time in non-breathing location</comment>
+    </query>
+    <query>
+      <formula>Pr[&lt;=500](&lt;&gt; (cd_ok + ox_ok + rr_ok + tv_ok &lt;= 1)) </formula>
+      <comment>Probability of extremely critical health state</comment>
     </query>
   </queries>
 </nta>

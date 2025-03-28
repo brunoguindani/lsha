@@ -25,9 +25,9 @@ class MutationFuzzer:
   DOC_XML_REGEX = r'<template>\s*<name[^>]*>\s*Doctor\s*</name>.*?</template>'
   LOC_VERIF_REGEX = r'State:\s*\(.*?patient\.(\w+)\s*\)'
   TRANS_VERIF_REGEX = r'Transition:\s*(patient\.\w+->patient\.\w+)'
+  CI_REGEX = r'\[\s*(\d+\.\d+)\s*,\s*(\d+\.\d+)\s*\]\s*\(95% CI\)'
 
-  def __init__(self, num_queries: int, mutation_factor: float, seed: int):
-    self.num_queries = num_queries
+  def __init__(self, mutation_factor: float, seed: int):
     self.mutation_factor = mutation_factor
     self.uppaal_seed = seed
     self.rng = np.random.default_rng(seed)
@@ -185,7 +185,8 @@ class MutationFuzzer:
 
     return location_counts, transition_counts
 
-  def verify_query(self, model_file: str, query_idx: int, seed: int) -> bool:
+  def verify_query_bool(self, model_file: str, query_idx: int, seed: int) \
+                        -> bool:
     """Return whether query `query_idx` from the Uppaal model is satisfied"""
     cmd = ['verifyta', model_file, '-q', '-r', str(seed), '--query-index',
            str(query_idx)]
@@ -198,15 +199,37 @@ class MutationFuzzer:
       raise RuntimeError("Formula is neither satisfied nor unsatisfied: "
                          + output)
 
-  def count_verified_queries(self, model_file: str) -> int:
-    """Count number of queries within the Uppaal model that are satisfied"""
-    verified_queries = 0
-    for query_idx in range(self.num_queries):
-      result = self.verify_query(model_file, query_idx, self.uppaal_seed)
-      # if result: print(query_idx, result)
-      verified_queries += result
+  def verify_query_prob(self, model_file: str, query_idx: int, seed: int) \
+                        -> float:
+    """Compute pointwise estimate of probabilistic query"""
+    cmd = ['verifyta', model_file, '-q', '-r', str(seed), '--query-index',
+           str(query_idx)]
+    output = subprocess.run(cmd, capture_output=True, text=True).stdout
+    match = re.search(self.CI_REGEX, output)
+    if match:
+      return 0.5 * (float(match.group(1)) + float(match.group(2)))
+    else:
+      raise RuntimeError(f"Confidence Interval not found in {output}")
+
+  def sum_probabilistic_queries(self, model_file: str, query_idxs: list[int]) \
+                                -> float:
+    """Sum distances computed in individual Uppaal queries"""
+    result = 0.0
+    for idx in query_idxs:
+      result += self.verify_query_prob(model_file, idx, self.uppaal_seed)
       self.uppaal_seed += 1
-    return verified_queries
+    return result
+
+  def count_verified_queries(self, model_file: str, query_idxs: list[int]) \
+                             -> dict[int: int]:
+    """Count number of queries within the Uppaal model that are satisfied"""
+    out = dict.fromkeys(query_idxs, 0)
+    for idx in query_idxs:
+      result = self.verify_query_bool(model_file, idx, self.uppaal_seed)
+      # if result: print(idx, result)
+      out[idx] += result
+      self.uppaal_seed += 1
+    return out
 
   def get_coverage(self, params: params_type) -> int:
     """Utility method combining the other class methods"""
@@ -218,12 +241,11 @@ class MutationFuzzer:
 def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
                                 seed: int) -> int:
   """If use_fuzzing is False, parameters will be uniformly randomly sampled"""
-  num_queries = 3
   iterations = 100
   runs_per_simul = 10
 
   # Initialize fuzzer and coverage
-  fuzzer = MutationFuzzer(num_queries, mutation_factor, seed)
+  fuzzer = MutationFuzzer(mutation_factor, seed)
   initial_model = os.path.join('templates', 'doctor_AC_exp.xml')
   params = {k: (v[0] + v[1])/2 for k, v in fuzzer.params_bounds.items()}
   mutant = fuzzer.write_mutant(initial_model, params)

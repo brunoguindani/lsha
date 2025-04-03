@@ -25,7 +25,7 @@ class MutationFuzzer:
   DOC_XML_REGEX = r'<template>\s*<name[^>]*>\s*Doctor\s*</name>.*?</template>'
   LOC_VERIF_REGEX = r'State:\s*\(.*?patient\.(\w+)\s*\)'
   TRANS_VERIF_REGEX = r'Transition:\s*(patient\.\w+->patient\.\w+)'
-  CI_REGEX = r'\[\s*(\d+\.\d+)\s*,\s*(\d+\.\d+)\s*\]\s*\(95% CI\)'
+  CI_REGEX = r'\[\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*\]\s*\(95% CI\)'
 
   def __init__(self, mutation_factor: float, seed: int):
     self.mutation_factor = mutation_factor
@@ -34,7 +34,7 @@ class MutationFuzzer:
     self.population = []
 
   def write_mutant(self, model_file: str, params: params_type) -> str:
-    """Insert input params into a template file and save the Uppaal model"""
+    """Insert input params into a template file and save the UPPAAL model"""
     # Extract doctor from automaton file
     doctor_file = self.extract_doctor_from_file(model_file)
 
@@ -193,7 +193,7 @@ class MutationFuzzer:
 
   def verify_query_bool(self, model_file: str, query_idx: int, seed: int) \
                         -> bool:
-    """Return whether query `query_idx` from the Uppaal model is satisfied"""
+    """Return whether query `query_idx` from the UPPAAL model is satisfied"""
     cmd = ['verifyta', model_file, '-q', '-r', str(seed), '--query-index',
            str(query_idx)]
     # print(cmd)
@@ -208,7 +208,7 @@ class MutationFuzzer:
 
   def count_verified_queries(self, model_file: str, query_idxs: list[int]) \
                              -> dict[int: int]:
-    """Count number of queries within the Uppaal model that are satisfied"""
+    """Count number of queries within the UPPAAL model that are satisfied"""
     out = dict.fromkeys(query_idxs, 0)
     for idx in query_idxs:
       result = self.verify_query_bool(model_file, idx, self.uppaal_seed)
@@ -234,7 +234,7 @@ class MutationFuzzer:
 
   def eval_probabilistic_queries(self, model_file: str,
                                  query_idxs: list[int]) -> list[float]:
-    """Evaluate probabilities computed in individual Uppaal queries"""
+    """Evaluate probabilities computed in individual UPPAAL queries"""
     out = []
     for idx in query_idxs:
       result = self.verify_query_prob(model_file, idx, self.uppaal_seed)

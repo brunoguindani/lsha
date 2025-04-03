@@ -94,29 +94,34 @@ class MutationFuzzer:
     out[key] = new_val
     return out
 
-  def remove_transition(self, model_file: str) -> str:
+  def remove_transition(self, model_file: str, index: int) -> str:
+    """
+    Remove the transition with the given index from the model
+
+    Returns the path to the mutated model, or to the unchanged model if the
+    transition is not present
+    """
+    with open(model_file, 'r') as f:
+      text = f.read()
+    pattern = self.TRANS_XML_REGEX.format(trans_id=index)
+    new_text = re.sub(pattern, '', text, count=1, flags=re.DOTALL)
+
+    new_model_file = model_file.replace('.xml', f'_t{index}.xml')
+    with open(new_model_file, 'w') as f:
+      f.write(new_text)
+
+    return new_model_file
+
+  def remove_random_transition(self, model_file: str) -> str:
     """
     Mutate input model by randomly removing one among a list of transitions
 
     Returns the path to the mutated model, or to the unchanged model if the
     sampled transition is not present
     """
-    # Sample index of transition to remove
     index = self.rng.choice(self.REMOVABLE_TRANS_IDS)
     print("Removing transition", index)
-
-    # Read model and remove transition (if any)
-    with open(model_file, 'r') as f:
-      text = f.read()
-    pattern = self.TRANS_XML_REGEX.format(trans_id=index)
-    new_text = re.sub(pattern, '', text, count=1, flags=re.DOTALL)
-
-    # Save new model
-    new_model_file = model_file.replace('.xml', f'_t{index}.xml')
-    with open(new_model_file, 'w') as f:
-      f.write(new_text)
-
-    return new_model_file
+    return self.remove_transition(model_file, index)
 
   def get_random_parameters(self) -> params_type:
     """Sample parameters uniformly randomly within their bounds"""
@@ -139,7 +144,7 @@ class MutationFuzzer:
       new_params = self.mutate_parameters(old_params)
       new_mutant = self.write_mutant(old_mutant, new_params)
     else:
-      new_mutant = self.remove_transition(old_mutant)
+      new_mutant = self.remove_random_transition(old_mutant)
     return new_mutant
 
   def store_mutant(self, mutant: str) -> None:
@@ -150,8 +155,8 @@ class MutationFuzzer:
     """Return size of the stored `population`"""
     return len(self.population)
 
-  def compute_elements_coverage(self, model_file: str, seed: int,
-      num_runs: int) -> tuple[dict[str: int], dict[str: int]]:
+  def compute_elements_coverage(self, model_file: str, num_runs: int) \
+                                -> tuple[dict[str: int], dict[str: int]]:
     """
     Count average number of covered locations and transitions by executing and
     checking `num_runs` traces
@@ -159,7 +164,7 @@ class MutationFuzzer:
     query_idx = 4  # index of fake property to execute simulations
     location_counts = defaultdict(int)
     transition_counts = defaultdict(int)
-    base_seed = str(seed)
+    base_seed = str(self.uppaal_seed)
     suffix_len = len(str(num_runs)) + 1
 
     for i in range(num_runs):
@@ -167,7 +172,7 @@ class MutationFuzzer:
       seed_i = base_seed + str(i).zfill(suffix_len)
       cmd = ['verifyta', model_file, '-q', '-r', str(seed_i), '--query-index',
              str(query_idx), '-t0']
-      # print(' '.join(cmd))
+      # print(cmd)
       output = subprocess.run(cmd, capture_output=True, text=True).stdout
       # Find and count coverage of locations and transitions
       matches_loc = re.findall(self.LOC_VERIF_REGEX, output)
@@ -183,6 +188,7 @@ class MutationFuzzer:
     for trans in transition_counts.keys():
       transition_counts[trans] /= num_runs
 
+    self.uppaal_seed += 1
     return location_counts, transition_counts
 
   def verify_query_bool(self, model_file: str, query_idx: int, seed: int) \
@@ -190,6 +196,7 @@ class MutationFuzzer:
     """Return whether query `query_idx` from the Uppaal model is satisfied"""
     cmd = ['verifyta', model_file, '-q', '-r', str(seed), '--query-index',
            str(query_idx)]
+    # print(cmd)
     output = subprocess.run(cmd, capture_output=True, text=True).stdout
     if self.SAT_STRG in output:
       return True
@@ -204,9 +211,12 @@ class MutationFuzzer:
     """Compute pointwise estimate of probabilistic query"""
     cmd = ['verifyta', model_file, '-q', '-r', str(seed), '--query-index',
            str(query_idx)]
+    # print(cmd)
     output = subprocess.run(cmd, capture_output=True, text=True).stdout
+    # Find Confidence Interval in output
     match = re.search(self.CI_REGEX, output)
     if match:
+      # Compute midpoint of CI
       return 0.5 * (float(match.group(1)) + float(match.group(2)))
     else:
       raise RuntimeError(f"Confidence Interval not found in {output}")
@@ -214,8 +224,12 @@ class MutationFuzzer:
   def eval_probabilistic_queries(self, model_file: str,
                                  query_idxs: list[int]) -> list[float]:
     """Evaluate probabilities computed in individual Uppaal queries"""
-    return [self.verify_query_prob(model_file, idx, self.uppaal_seed)
-            for idx in query_idxs]
+    out = []
+    for idx in query_idxs:
+      result = self.verify_query_prob(model_file, idx, self.uppaal_seed)
+      out.append(result)
+      self.uppaal_seed += 1
+    return out
 
   def count_verified_queries(self, model_file: str, query_idxs: list[int]) \
                              -> dict[int: int]:
@@ -228,18 +242,15 @@ class MutationFuzzer:
       self.uppaal_seed += 1
     return out
 
-  def get_coverage(self, params: params_type) -> int:
-    """Utility method combining the other class methods"""
-    model_file = self.write_mutant(params)
-    return self.count_verified_queries(model_file)
-
 
 
 def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
                                 seed: int) -> int:
   """If use_fuzzing is False, parameters will be uniformly randomly sampled"""
+  print("\nFuzzing:", use_fuzzing, "seed:", seed, "\n")
   iterations = 100
   runs_per_simul = 10
+  trans_uniform_prob = 0.75
 
   # Initialize fuzzer and coverage
   fuzzer = MutationFuzzer(mutation_factor, seed)
@@ -249,13 +260,38 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
   fuzzer.store_mutant(mutant)
   print(mutant)
 
-  loc_counts, trans_counts = fuzzer.compute_elements_coverage(mutant, seed,
-                                                              runs_per_simul)
-  for loc, count in loc_counts.items():
-    print(f"{loc}: {count}")
+  loc, trans = fuzzer.compute_elements_coverage(mutant, runs_per_simul)
+  curr_loc_coverage = len(loc)
+  curr_trans_coverage = len(trans)
 
-  for trans, count in trans_counts.items():
-    print(f"{trans}: {count}")
+  for i in range(iterations):
+    print("Iteration", i)
+    print("Current coverage:", curr_loc_coverage, curr_trans_coverage)
+    # Get new mutant, either by mutation or randomly
+    if use_fuzzing:
+      mutant = fuzzer.sample_and_mutate()
+    else:
+      # Create random mutant starting from initial model
+      mutant = initial_model
+      for tr_id in fuzzer.REMOVABLE_TRANS_IDS:
+        # Remove each transition with an independent chance
+        if fuzzer.rng.random() < trans_uniform_prob:
+          mutant = fuzzer.remove_transition(mutant)
+      params = fuzzer.get_random_parameters()
+      mutant = fuzzer.write_mutant(mutant, params)
+
+    # If either type of coverage increases, mutant will be stored
+    loc, trans = fuzzer.compute_elements_coverage(mutant, runs_per_simul)
+    num_loc = len(loc)
+    num_trans = len(trans)
+    if num_loc > curr_loc_coverage:
+      print("Location coverage increased to", num_loc)
+      curr_loc_coverage = num_loc
+      fuzzer.store_mutant(mutant)
+    if num_trans > curr_trans_coverage:
+      print("Transition coverage increased to", num_trans)
+      curr_trans_coverage = num_trans
+      fuzzer.store_mutant(mutant)
 
 
 
@@ -264,7 +300,7 @@ if __name__ == '__main__':
   seed = 20250320
   num_experiments = 5
 
-  for use_fuzzing in (False, True):
+  for use_fuzzing in (True, False):
     for i in range(num_experiments):
       perform_fuzzing_experiments(mutation_factor, use_fuzzing, seed)
       seed += 1

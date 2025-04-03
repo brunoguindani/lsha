@@ -37,10 +37,6 @@ system doctor, patient;</system>
       <comment>Fake property for simulations</comment>
     </query>
     <query>
-      <formula>simulate[&lt;=500; 10]{{tv}}</formula>
-      <comment>Value of tidal volume</comment>
-    </query>
-    <query>
       <formula>Pr[&lt;=500](&lt;&gt; doctor.stable) </formula>
       <comment>Probability of patient stability</comment>
     </query>

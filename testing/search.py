@@ -66,23 +66,22 @@ class MonoObjectiveGeneticSearcher(MutationFuzzer):
                                      query_bound_is_upper):
       dist = self.get_signed_distance(prob, bound, is_upper)
       distances.append(dist)
-    # print(distances)
+    print(distances)
     return tuple(distances)
 
 
-  def get_unidim_fitness(self, ga: pygad.GA, individual: list, idx: int) \
-                         -> float:
+  def get_fitness(self, ga: pygad.GA, individual: list, idx: int) -> float:
     """
-    Build mutant from vector of `individual` and compute total fitness score
+    Build mutant from `individual` and compute uni-dim. total fitness score
 
     `ga` and `idx` parameters are required by the PyGAD API
     """
     return sum(self.get_signed_distances(individual))
 
   def run_GA(self):
-    """Run the Genetic Algorithm optimization"""
+    """Run the Genetic Algorithm maximizing the fitness score"""
     ga = pygad.GA(num_generations=50, num_parents_mating=5,
-                  fitness_func=self.get_unidim_fitness, sol_per_pop=10,
+                  fitness_func=self.get_fitness, sol_per_pop=10,
                   num_genes=self.num_genes, gene_space=self.space,
                   mutation_percent_genes=20,
                   random_seed=self.rng.integers(20250000))
@@ -94,6 +93,31 @@ class MonoObjectiveGeneticSearcher(MutationFuzzer):
 
 
 
+class MultiObjectiveGeneticSearcher(MonoObjectiveGeneticSearcher):
+  def get_fitness(self, ga: pygad.GA, individual: list, idx: int) \
+                  -> tuple[float]:
+    """
+    Build mutant from `individual` and compute multi-dim. fitness scores
+
+    `ga` and `idx` parameters are required by the PyGAD API
+    """
+    return self.get_signed_distances(individual)
+
+  def run_GA(self):
+    """Run the Genetic Algorithm maximizing the fitness score"""
+    ga = pygad.GA(num_generations=50, num_parents_mating=5,
+                  fitness_func=self.get_fitness, sol_per_pop=10,
+                  num_genes=self.num_genes, gene_space=self.space,
+                  mutation_percent_genes=20,
+                  random_seed=self.rng.integers(20250000))
+    ga.run()
+    solution, solution_fitness, _ = ga.best_solution()
+    print("Best fitness:", solution_fitness)
+    print("Best mutant:", solution)
+    print(f"Pareto front:\n", ga.pareto_fronts, sep="")
+
+
+
 if __name__ == '__main__':
-  searcher = MonoObjectiveGeneticSearcher(20250403, [5, 6, 7])
+  searcher = MultiObjectiveGeneticSearcher(20250403, [5, 6, 7])
   searcher.run_GA()

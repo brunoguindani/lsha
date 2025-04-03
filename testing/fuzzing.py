@@ -206,6 +206,17 @@ class MutationFuzzer:
       raise RuntimeError("Formula is neither satisfied nor unsatisfied: "
                          + output)
 
+  def count_verified_queries(self, model_file: str, query_idxs: list[int]) \
+                             -> dict[int: int]:
+    """Count number of queries within the Uppaal model that are satisfied"""
+    out = dict.fromkeys(query_idxs, 0)
+    for idx in query_idxs:
+      result = self.verify_query_bool(model_file, idx, self.uppaal_seed)
+      # if result: print(idx, result)
+      out[idx] += result
+      self.uppaal_seed += 1
+    return out
+
   def verify_query_prob(self, model_file: str, query_idx: int, seed: int) \
                         -> float:
     """Compute pointwise estimate of probabilistic query"""
@@ -228,17 +239,6 @@ class MutationFuzzer:
     for idx in query_idxs:
       result = self.verify_query_prob(model_file, idx, self.uppaal_seed)
       out.append(result)
-      self.uppaal_seed += 1
-    return out
-
-  def count_verified_queries(self, model_file: str, query_idxs: list[int]) \
-                             -> dict[int: int]:
-    """Count number of queries within the Uppaal model that are satisfied"""
-    out = dict.fromkeys(query_idxs, 0)
-    for idx in query_idxs:
-      result = self.verify_query_bool(model_file, idx, self.uppaal_seed)
-      # if result: print(idx, result)
-      out[idx] += result
       self.uppaal_seed += 1
     return out
 

@@ -6,7 +6,7 @@ from fuzzing import MutationFuzzer
 from generate_automata import query_bounds, query_bound_is_upper
 
 
-class GeneticSearcher(MutationFuzzer):
+class MonoObjectiveGeneticSearcher(MutationFuzzer):
   BASE_FILE = os.path.join('generated', 'safest_04d_delta1_doctor_AC_exp.xml')
   TRANS_NAME_REGEX = r"_t(\d+)"
 
@@ -57,36 +57,43 @@ class GeneticSearcher(MutationFuzzer):
     else:
       return value - bound
 
-  def get_fitness(self, ga: pygad.GA, values: list, idx: int):
-    """
-    Build mutant from vector of `values` and compute its total fitness score
-
-    `ga` and `idx` parameters are required by the PyGAD API
-    """
-    model_file = self.values_to_file(values)
+  def get_signed_distances(self, individual: list) -> tuple[float]:
+    """Compute signed distances associated with each query"""
+    model_file = self.values_to_file(individual)
     probs = self.eval_probabilistic_queries(model_file, self.query_idxs)
-    total_fitness = 0.0
+    distances = []
     for prob, bound, is_upper in zip(probs, query_bounds.values(),
                                      query_bound_is_upper):
       dist = self.get_signed_distance(prob, bound, is_upper)
-      total_fitness += dist
-    print(total_fitness)
-    return total_fitness
+      distances.append(dist)
+    # print(distances)
+    return tuple(distances)
+
+
+  def get_unidim_fitness(self, ga: pygad.GA, individual: list, idx: int) \
+                         -> float:
+    """
+    Build mutant from vector of `individual` and compute total fitness score
+
+    `ga` and `idx` parameters are required by the PyGAD API
+    """
+    return sum(self.get_signed_distances(individual))
 
   def run_GA(self):
-      """Run the Genetic Algorithm optimization"""
-      ga = pygad.GA(num_generations=50, num_parents_mating=5,
-                    fitness_func=self.get_fitness, sol_per_pop=10,
-                    num_genes=self.num_genes, gene_space=self.space,
-                    mutation_percent_genes=20,
-                    random_seed=self.rng.integers(20250000))
-      ga.run()
-      solution, solution_fitness, _ = ga.best_solution()
-      print("Best fitness:", solution_fitness)
-      print("Best mutant:", solution)
-      print(f"Population:\n", ga.population, sep="")
+    """Run the Genetic Algorithm optimization"""
+    ga = pygad.GA(num_generations=50, num_parents_mating=5,
+                  fitness_func=self.get_unidim_fitness, sol_per_pop=10,
+                  num_genes=self.num_genes, gene_space=self.space,
+                  mutation_percent_genes=20,
+                  random_seed=self.rng.integers(20250000))
+    ga.run()
+    solution, solution_fitness, _ = ga.best_solution()
+    print("Best fitness:", solution_fitness)
+    print("Best mutant:", solution)
+    print(f"Population:\n", ga.population, sep="")
+
 
 
 if __name__ == '__main__':
-  searcher = GeneticSearcher(20250403, [5, 6, 7])
+  searcher = MonoObjectiveGeneticSearcher(20250403, [5, 6, 7])
   searcher.run_GA()

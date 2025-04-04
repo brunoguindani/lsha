@@ -104,13 +104,15 @@ def generate_random_signal(num_events: int, event_delta: float,
 
 
 if __name__ == '__main__':
-  max_events = 50
+  num_events = 50
+  num_traces = 50
   event_delta = 6.0
   row_delta = 1.0
   base_seed = 20250318
-  for i in range(1, max_events+1):
-    base_name = 'SIM' + str(i).zfill(3)
+  for i in range(num_traces):
+    base_name = 'SIM' + str(i).zfill(2)
     folder_path = os.path.join('generated', base_name)
     os.makedirs(folder_path, exist_ok=True)
     output_path = os.path.join(folder_path, base_name + '.csv')
-    generate_random_signal(i, event_delta, row_delta, base_seed+i, output_path)
+    generate_random_signal(num_events, event_delta, row_delta, base_seed+i,
+                           output_path)

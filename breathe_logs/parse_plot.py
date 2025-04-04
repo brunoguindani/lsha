@@ -6,7 +6,7 @@ import sys
 
 
 metric_to_low_high_values = {'HeartRate': (65, 90),
-                             'TidalVolume': (300, 600),
+                             'TidalVolume': (300, 500),
                              'RespirationRate': (10, 17),
                              'CarbonDioxide': (40, 65),
                              'OxygenSaturation': (0.915, 0.99),
@@ -21,7 +21,7 @@ patient_label_to_metric = {
 }
 
 ventilator_label_to_metric = {
-  'fiox': 'FractionInspiredOxygen', 
+  'fiox': 'FractionInspiredOxygen',
   'peep': 'PositiveEndExpiratoryPressure',
   'rera': 'RespirationRate_vent',
   'tvol': 'TidalVolume_vent',

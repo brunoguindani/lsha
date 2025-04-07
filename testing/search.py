@@ -2,12 +2,12 @@ import os
 import pygad
 import re
 
-from fuzzing import MutationFuzzer
+from fuzzing import MutationFuzzer, patient_name
 from generate_automata import query_bounds, query_bound_is_upper
 
 
 class MonoObjectiveGeneticSearcher(MutationFuzzer):
-  BASE_FILE = os.path.join('generated', 'safest_04d_delta1_doctor_AC_exp.xml')
+  BASE_FILE = os.path.join('generated', patient_name + '.xml')
   TRANS_NAME_REGEX = r"_t(\d+)"
 
   def __init__(self, seed: int, query_idxs: list[int]):
@@ -36,6 +36,7 @@ class MonoObjectiveGeneticSearcher(MutationFuzzer):
     for b, trans_id in zip(trans_bools, self.REMOVABLE_TRANS_IDS):
       if b:
         file = self.remove_transition(file, trans_id)
+    print(file)
     return file
 
   def get_signed_distance(self, value: float, bound: float,
@@ -109,7 +110,7 @@ class MultiObjectiveGeneticSearcher(MonoObjectiveGeneticSearcher):
                   fitness_func=self.get_fitness, sol_per_pop=10,
                   num_genes=self.num_genes, gene_space=self.space,
                   mutation_percent_genes=20,
-                  random_seed=self.rng.integers(20250000))
+                  random_seed=int(self.rng.integers(20250000)))
     ga.run()
     solution, solution_fitness, _ = ga.best_solution()
     print("Best fitness:", solution_fitness)

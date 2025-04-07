@@ -7,6 +7,9 @@ import subprocess
 from generate_automata import fixed_params, write_doctor_patient_automaton
 
 
+patient_name = 'safest_05a_rand_traces'
+
+
 class MutationFuzzer:
   params_type = dict[str: float]
   params_bounds = {
@@ -17,10 +20,9 @@ class MutationFuzzer:
   SAT_STRG = '-- Formula is satisfied.'
   NOTSAT_STRG = '-- Formula is NOT satisfied.'
   PATIENT_PATH = os.path.join('..', 'sha_learning', 'resources',
-                             'learned_sha', 'safest_04d_delta1.log')
+                             'learned_sha', patient_name + '.log')
   OUTPUT_ROOT = os.path.join('generated', 'fuzzing')
-  REMOVABLE_TRANS_IDS = [10, 11, 12, 13, 14, 15, 17, 19, 20, 21, 22, 23, 24,
-                         26, 28, 29, 30, 31]
+  REMOVABLE_TRANS_IDS = list(range(10, 32))
   TRANS_XML_REGEX = r'<transition id="id{trans_id}">.*?</transition>'
   DOC_XML_REGEX = r'<template>\s*<name[^>]*>\s*Doctor\s*</name>.*?</template>'
   LOC_VERIF_REGEX = r'State:\s*\(.*?patient\.(\w+)\s*\)'
@@ -45,8 +47,7 @@ class MutationFuzzer:
     # Build output file
     model_name = os.path.split(doctor_file)[-1].replace('_doctor.xml', '.xml')
     output_name_no_params = str(model_name).split('__')[-1]
-    output_name = params_strg + '__' + output_name_no_params
-    output_path = os.path.join(self.OUTPUT_ROOT, output_name)
+    output_path = os.path.join(self.OUTPUT_ROOT, params_strg + '.xml')
     write_doctor_patient_automaton(self.PATIENT_PATH, doctor_file, output_path,
                                    all_params)
     return output_path
@@ -79,7 +80,7 @@ class MutationFuzzer:
     """Mutate input params by applying a random mutation"""
     # Randomly choose a parameter to mutate
     key = self.rng.choice(tuple(self.params_bounds.keys()))
-    print("Mutating parameter", key)
+    # print("Mutating parameter", key)
     new_val = params[key]
     # Apply small amount of noise to nominal mutation factor
     factor = self.mutation_factor * self.rng.normal(loc=1.0, scale=0.01)
@@ -248,7 +249,7 @@ class MutationFuzzer:
 def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
                                 seed: int) -> int:
   """If use_fuzzing is False, parameters will be uniformly randomly sampled"""
-  print("\nFuzzing:", use_fuzzing, "seed:", seed, "\n")
+  print("\nSeed:", seed, "\n")
   iterations = 100
   runs_per_simul = 10
   trans_uniform_prob = 0.75
@@ -259,7 +260,6 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
   params = {k: (v[0] + v[1])/2 for k, v in fuzzer.params_bounds.items()}
   mutant = fuzzer.write_mutant(initial_model, params)
   fuzzer.store_mutant(mutant)
-  print(mutant)
 
   loc, trans = fuzzer.compute_elements_coverage(mutant, runs_per_simul)
   curr_loc_coverage = len(loc)
@@ -273,11 +273,11 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
       mutant = fuzzer.sample_and_mutate()
     else:
       # Create random mutant starting from initial model
-      mutant = initial_model
+      mutant = fuzzer.write_mutant(initial_model, params)
       for tr_id in fuzzer.REMOVABLE_TRANS_IDS:
         # Remove each transition with an independent chance
         if fuzzer.rng.random() < trans_uniform_prob:
-          mutant = fuzzer.remove_transition(mutant)
+          mutant = fuzzer.remove_transition(mutant, tr_id)
       params = fuzzer.get_random_parameters()
       mutant = fuzzer.write_mutant(mutant, params)
 
@@ -297,11 +297,11 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
 
 
 if __name__ == '__main__':
+  use_fuzzing = True
   mutation_factor = 1.5
   seed = 20250320
   num_experiments = 5
 
-  for use_fuzzing in (True, False):
-    for i in range(num_experiments):
-      perform_fuzzing_experiments(mutation_factor, use_fuzzing, seed)
-      seed += 1
+  for i in range(num_experiments):
+    perform_fuzzing_experiments(mutation_factor, use_fuzzing, seed)
+    seed += 1

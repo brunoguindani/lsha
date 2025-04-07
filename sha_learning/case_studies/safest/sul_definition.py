@@ -42,19 +42,21 @@ safest_cs = SystemUnderLearning([vol], events, parse_data, label_event, get_vol_
 
 test = False
 if test:
-    traces_folder = '/home/bruno/DEIB_Dropbox/safest/lsha/breathe_logs/processed_signals/'
+    root_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, os.pardir, 'breathe_logs'))
+    traces_folder = os.path.join(root_folder, 'processed_signals')
     traces_files = os.listdir(traces_folder)
     traces_files.sort()
 
     for file in traces_files:
+        file_path = os.path.join(traces_folder, file)
         # Testing data to signals conversion
-        new_signals: list[SampledSignal] = parse_data(traces_folder + file)
+        new_signals: list[SampledSignal] = parse_data(file_path)
         # Testing chg pts identification
         chg_pts: list[ChangePoint] = safest_cs.find_chg_pts([sig for sig in new_signals if sig.label in signal_labels])
         # Testing event labeling
         id_events: list[Event] = [label_event(events, new_signals, pt.t) for pt in chg_pts]
         # Testing signal to trace conversion
-        safest_cs.process_data(traces_folder + file)
+        safest_cs.process_data(file_path)
         timed_trace = safest_cs.timed_traces[-1]
         trace = Trace(tt=timed_trace)
         print(file, len(trace))

@@ -21,6 +21,7 @@
     </location>
     <location id="id5" x="1020" y="-17">
       <name x="1037" y="-25">stable</name>
+      <urgent/>
     </location>
     <location id="id6" x="59" y="153">
       <name x="8" y="161">actingD</name>
@@ -162,5 +163,9 @@
       <label kind="synchronisation" x="484" y="-59">tv2?</label>
       <nail x="501" y="-25"/>
       <nail x="467" y="-51"/>
+    </transition>
+    <transition id="id32">
+      <source ref="id5"/>
+      <target ref="id0"/>
     </transition>
   </template>

@@ -210,19 +210,19 @@ def write_environment_doctor_patient_automaton(source_file: str,
 
 if __name__ == '__main__':
   parameters = {'alpha': 0.5, 'beta': 0.5, 'doctor_param': 0.2} | fixed_params
-  source_name = 'safest_04d_delta1'
+  source_name = 'safest_05a_rand_traces'
   source_path = os.path.join('..', 'sha_learning', 'resources', 'learned_sha',
                              source_name + '.log')
   doctor_name = 'doctor_AC_exp'
   doctor_path = os.path.join('templates', doctor_name + '.xml')
-  file_name = source_name + '_' + doctor_name + '.xml'
-  # output_path = os.path.join('generated', file_name)
-  # write_doctor_patient_automaton(source_path, doctor_path, output_path,
-  #                                parameters)
+  file_name = source_name + '.xml'
+  output_path = os.path.join('generated', file_name)
+  write_doctor_patient_automaton(source_path, doctor_path, output_path,
+                                 parameters)
   env_traces_folder = os.path.join('..', 'breathe_logs', 'environment_traces')
   for trace_name in os.listdir(env_traces_folder):
     trace_csv_path = os.path.join(env_traces_folder, trace_name)
-    output_name = trace_name.replace('.csv', '.xml')
+    output_name = source_name + '_' + trace_name.replace('.csv', '.xml')
     output_path = os.path.join('generated', 'accuracy', output_name)
     write_environment_doctor_patient_automaton(source_path, doctor_path,
         trace_csv_path, output_path, parameters)

@@ -23,6 +23,9 @@ events.append(Event('', 'off.', 'off.'))
 print(len(events)-1, "->", events[-1])
 print()
 
+# Environment-controlled events on patient
+env_events = events[0:15]
+
 # Define flow conditions
 def vol_model(interval: list[Timestamp], V_0: float) -> list[float]:
     """Solution of the ODE modeling the variable"""
@@ -46,6 +49,8 @@ if test:
     traces_folder = os.path.join(root_folder, 'processed_signals')
     traces_files = os.listdir(traces_folder)
     traces_files.sort()
+    env_traces_folder = os.path.join(root_folder, 'environment_traces')
+    os.makedirs(env_traces_folder, exist_ok=True)
 
     for file in traces_files:
         file_path = os.path.join(traces_folder, file)
@@ -61,6 +66,16 @@ if test:
         trace = Trace(tt=timed_trace)
         print(file, len(trace))
         print(trace, "\n")
+        # Write environment trace in separate file
+        env_trace_file = os.path.join(env_traces_folder, file + '.csv')
+        with open(env_trace_file, 'w') as f:
+          f.write('time,event\n')
+          for i in range(len(timed_trace)):
+            event = timed_trace.e[i]
+            dt = timed_trace.t[i]
+            secs = 60 * dt.min + dt.sec
+            if event in env_events:
+              f.write(f'{secs},{event}\n')
 
     # Test segment identification
     test_trace = Trace(safest_cs.traces[0][:1])

@@ -8,7 +8,7 @@ bool cd_ok = true, hr_ok = true, ox_ok = true, rr_ok = true, tv_ok = true;
 double alpha = {alpha}, beta = {beta};
 double doctor_param = {doctor_param}, patient_param = {patient_param};
 double instant_action = 1000;</declaration>
-{doctor}  <template>
+{templates}  <template>
     <name x="5" y="5">Patient</name>
 {locations}    <init ref="__init__"/>
 {transitions}  </template>

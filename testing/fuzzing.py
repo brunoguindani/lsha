@@ -4,7 +4,7 @@ import os
 import re
 import subprocess
 
-from generate_automata import fixed_params, write_automaton
+from generate_automata import fixed_params, write_doctor_patient_automaton
 
 
 class MutationFuzzer:
@@ -47,7 +47,8 @@ class MutationFuzzer:
     output_name_no_params = str(model_name).split('__')[-1]
     output_name = params_strg + '__' + output_name_no_params
     output_path = os.path.join(self.OUTPUT_ROOT, output_name)
-    write_automaton(self.PATIENT_PATH, doctor_file, output_path, all_params)
+    write_doctor_patient_automaton(self.PATIENT_PATH, doctor_file, output_path,
+                                   all_params)
     return output_path
 
   def get_params_from_file(self, file_path: str) -> params_type:

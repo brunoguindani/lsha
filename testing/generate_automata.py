@@ -27,17 +27,16 @@ query_bound_is_upper = [
 fixed_params = {'patient_param': 0.2} | query_bounds
 
 
-def write_automaton(source_file: str, doctor_path: str, output_path: str,
-                    parameters: dict[str: float]):
+def _write_automaton(source_file: str, output_path: str, templates_xml: str,
+                     parameters: dict[str: float]) -> None:
   # Read files into strings
   with open(template_file, 'r') as f, \
        open(location_template_file, 'r') as fl, \
        open(transition_template_file, 'r') as ft, \
-       open(doctor_path, 'r') as fd, open(source_file, 'r') as fs:
+       open(source_file, 'r') as fs:
     template = f.read()
     location_template = fl.read()
     transition_template = ft.read()
-    doctor = fd.read()
     source = fs.readlines()
 
   # Initialize strings that we will incrementally build
@@ -112,12 +111,21 @@ def write_automaton(source_file: str, doctor_path: str, output_path: str,
       transitions_strg += new_transition
 
   # Create and save XML
-  final_xml = template.format(doctor=doctor, locations=locations_strg,
-                              transitions=transitions_strg, **parameters)
+  final_xml = template.format(templates=templates_xml,
+    locations=locations_strg, transitions=transitions_strg, **parameters)
   # print(final_xml)
   with open(output_path, 'w') as f:
     f.write(final_xml)
   # print("Saved to", output_path)
+
+
+
+def write_doctor_patient_automaton(source_file: str, doctor_path: str,
+      output_path: str, parameters: dict[str: float]) -> None:
+  with open(doctor_path, 'r') as f:
+    doctor_xml = f.read()
+  _write_automaton(source_file, output_path, doctor_xml, parameters)
+
 
 
 if __name__ == '__main__':
@@ -129,4 +137,5 @@ if __name__ == '__main__':
   file_name = source_name + '_' + doctor_name + '.xml'
   output_path = os.path.join('generated', file_name)
   parameters = {'alpha': 0.7, 'beta': 0.5, 'doctor_param': 0.2} | fixed_params
-  write_automaton(source_path, doctor_path, output_path, parameters)
+  write_doctor_patient_automaton(source_path, doctor_path, output_path,
+                                 parameters)

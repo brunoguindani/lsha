@@ -1,0 +1,6 @@
+    <transition id="id{numid}">
+      <source ref="id{srcid}"/>
+      <target ref="id{trgid}"/>
+      <label kind="guard" x="{guard_x}" y="{guard_y}">global_time&gt;={time}</label>
+      <label kind="synchronisation" x="{label_x}" y="{label_y}">{label}</label>
+    </transition>

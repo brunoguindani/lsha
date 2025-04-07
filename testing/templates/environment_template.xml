@@ -1,0 +1,4 @@
+  <template>
+    <name>Environment</name>
+{locations}    <init ref="id0"/>
+{transitions}  </template>

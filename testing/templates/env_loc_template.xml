@@ -1,0 +1,3 @@
+    <location id="id{numid}" x="{loc_x}" y="{loc_y}">
+      <label kind="invariant" x="{inv_x}" y="{inv_y}">global_time&lt;={time}</label>
+    </location>

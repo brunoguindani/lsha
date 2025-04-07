@@ -12,9 +12,7 @@ double instant_action = 1000;</declaration>
     <name x="5" y="5">Patient</name>
 {locations}    <init ref="__init__"/>
 {transitions}  </template>
-  <system>doctor = Doctor();
-patient = Patient();
-system doctor, patient;</system>
+  <system>{system}</system>
   <queries>
     <query>
       <formula>Pr[&lt;=500](&lt;&gt; doctor.stable) &lt;= {query_bound0} </formula>

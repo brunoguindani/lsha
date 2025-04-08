@@ -250,7 +250,7 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
                                 seed: int) -> int:
   """If use_fuzzing is False, parameters will be uniformly randomly sampled"""
   print("\nSeed:", seed, "\n")
-  iterations = 100
+  iterations = 500
   runs_per_simul = 10
   trans_uniform_prob = 0.75
 

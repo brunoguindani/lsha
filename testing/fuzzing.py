@@ -28,11 +28,17 @@ class MutationFuzzer:
   LOC_VERIF_REGEX = r'State:\s*\(.*?patient\.(\w+)\s*\)'
   TRANS_VERIF_REGEX = r'Transition:\s*(patient\.\w+->patient\.\w+)'
   CI_REGEX = r'\[\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*\]\s*\(95% CI\)'
+  PARAM_REGEX = r"[a-zA-Z]+(0(?:\.\d+)?|1(?:\.0+)?|\d*\.\d+)"
+  TRANS_REGEX = r"_t(\d+)"
 
-  def __init__(self, mutation_factor: float, seed: int):
+  num_params = len(params_bounds)
+  num_trans = len(REMOVABLE_TRANS_IDS)
+
+  def __init__(self, mutation_factor: float, seed: int, log_file: str):
     self.mutation_factor = mutation_factor
     self.uppaal_seed = seed
     self.rng = np.random.default_rng(seed)
+    self.log_file = log_file
     self.population = []
 
   def write_mutant(self, model_file: str, params: params_type) -> str:
@@ -75,6 +81,22 @@ class MutationFuzzer:
       return new_file_path
     else:
       raise RuntimeError(f"Doctor not found in file {file_path}")
+
+  def file_to_values(self, file_name: str) -> list:
+    params_values = [float(m)
+      for m in re.findall(self.PARAM_REGEX, file_name)][0:self.num_params]
+
+    trans_ids = [int(m) for m in re.findall(self.TRANS_REGEX, file_name)]
+    trans_bools = [1 if t in trans_ids else 0
+                   for t in self.REMOVABLE_TRANS_IDS]
+
+    return params_values + trans_bools
+
+  def write_to_log(self, mutant_file: str, *args) -> None:
+    vals = self.file_to_values(mutant_file) + list(args)
+    strg = ','.join([str(_) for _ in vals]) + '\n'
+    with open(self.log_file, 'a') as f:
+      f.write(strg)
 
   def mutate_parameters(self, params: params_type) -> params_type:
     """Mutate input params by applying a random mutation"""
@@ -253,9 +275,11 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
   iterations = 500
   runs_per_simul = 10
   trans_uniform_prob = 0.75
+  log_file = 'testing.csv'
+  technique = 'fuzzing' if use_fuzzing else 'random'
 
   # Initialize fuzzer and coverage
-  fuzzer = MutationFuzzer(mutation_factor, seed)
+  fuzzer = MutationFuzzer(mutation_factor, seed, log_file)
   initial_model = os.path.join('templates', 'doctor_AC_exp.xml')
   params = {k: (v[0] + v[1])/2 for k, v in fuzzer.params_bounds.items()}
   mutant = fuzzer.write_mutant(initial_model, params)
@@ -293,6 +317,8 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
       print("Transition coverage increased to", num_trans)
       curr_trans_coverage = num_trans
       fuzzer.store_mutant(mutant)
+    # Write mutant to log
+    fuzzer.write_to_log(mutant, seed, technique)
 
 
 

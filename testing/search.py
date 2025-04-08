@@ -8,18 +8,15 @@ from generate_automata import query_bounds, query_bound_is_upper
 
 class MonoObjectiveGeneticSearcher(MutationFuzzer):
   BASE_FILE = os.path.join('generated', patient_name + '.xml')
-  TRANS_NAME_REGEX = r"_t(\d+)"
 
-  def __init__(self, seed: int, query_idxs: list[int]):
-    super().__init__(None, seed)
+  def __init__(self, seed: int, query_idxs: list[int], log_file: str):
+    super().__init__(None, seed, log_file)
     # Indexes of queries to evaluate fitness
     self.query_idxs = query_idxs
     # Bounds for doctor parameters
     self.space = [{'low': l, 'high': u}
                   for l, u in super().params_bounds.values()
     ]
-    self.num_params = len(self.space)
-    self.num_trans = len(super().REMOVABLE_TRANS_IDS)
     self.num_genes = self.num_params + self.num_trans
     # Boolean-like variables for including (0) or excluding (1) transitions
     self.space.extend([[0, 1] for _ in range(self.num_trans)])
@@ -38,6 +35,11 @@ class MonoObjectiveGeneticSearcher(MutationFuzzer):
         file = self.remove_transition(file, trans_id)
     print(file)
     return file
+
+  def write_to_log(self, *args) -> None:
+    strg = ','.join([str(_) for _ in args]) + '\n'
+    with open(self.log_file, 'a') as f:
+      f.write(strg)
 
   def get_signed_distance(self, value: float, bound: float,
                           bound_is_upper: bool) -> float:
@@ -104,7 +106,7 @@ class MultiObjectiveGeneticSearcher(MonoObjectiveGeneticSearcher):
     """
     return self.get_signed_distances(individual)
 
-  def run_GA(self):
+  def run_GA(self, seed: int):
     """Run the Genetic Algorithm maximizing the fitness score"""
     ga = pygad.GA(num_generations=50, num_parents_mating=5,
                   fitness_func=self.get_fitness, sol_per_pop=10,
@@ -116,9 +118,18 @@ class MultiObjectiveGeneticSearcher(MonoObjectiveGeneticSearcher):
     print("Best fitness:", solution_fitness)
     print("Best mutant:", solution)
     print(f"Pareto front:\n", ga.pareto_fronts, sep="")
+    for p in ga.population:
+      self.write_to_log(*p, seed, 'genetic')
 
 
 
 if __name__ == '__main__':
-  searcher = MultiObjectiveGeneticSearcher(20250403, [5, 6, 7])
-  searcher.run_GA()
+  seed = 20250403
+  query_idxs = [5, 6, 7]
+  log_file = 'testing.csv'
+  num_experiments = 5
+
+  for i in range(num_experiments):
+    searcher = MultiObjectiveGeneticSearcher(seed, query_idxs, log_file)
+    searcher.run_GA(seed)
+    seed += 1

@@ -111,23 +111,23 @@ class MultiObjectiveGeneticSearcher(MonoObjectiveGeneticSearcher):
     ga = pygad.GA(num_generations=50, num_parents_mating=5,
                   fitness_func=self.get_fitness, sol_per_pop=10,
                   num_genes=self.num_genes, gene_space=self.space,
-                  mutation_percent_genes=20,
+                  mutation_percent_genes=20, save_solutions=True,
                   random_seed=int(self.rng.integers(20250000)))
     ga.run()
     solution, solution_fitness, _ = ga.best_solution()
-    print("Best fitness:", solution_fitness)
-    print("Best mutant:", solution)
-    print(f"Pareto front:\n", ga.pareto_fronts, sep="")
-    for p in ga.population:
-      self.write_to_log(*p, seed, 'genetic')
+    # print(f"Pareto front:\n", ga.pareto_fronts, sep="")
+    for j in range(len(ga.solutions)):
+      sol = ga.solutions[i]
+      fit = ga.solutions_fitness[i]
+      self.write_to_log(*sol, *fit, seed, 'genetic')
 
 
 
 if __name__ == '__main__':
-  seed = 20250403
+  seed = 20250320
+  num_experiments = 5
   query_idxs = [5, 6, 7]
   log_file = 'testing.csv'
-  num_experiments = 5
 
   for i in range(num_experiments):
     searcher = MultiObjectiveGeneticSearcher(seed, query_idxs, log_file)

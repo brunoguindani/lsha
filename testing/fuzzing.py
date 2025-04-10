@@ -275,6 +275,7 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
   iterations = 500
   runs_per_simul = 10
   trans_uniform_prob = 0.75
+  query_idxs = [0, 1, 2]
   log_file = 'testing.csv'
   technique = 'fuzzing' if use_fuzzing else 'random'
 
@@ -317,17 +318,23 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
       print("Transition coverage increased to", num_trans)
       curr_trans_coverage = num_trans
       fuzzer.store_mutant(mutant)
-    # Write mutant to log
-    fuzzer.write_to_log(mutant, seed, technique)
+    # Get vector of verified boolean properties (0s and 1s)
+    try:
+      is_verified_list = fuzzer.count_verified_queries(mutant, query_idxs) \
+                               .values()
+      fuzzer.write_to_log(mutant, *is_verified_list, seed, technique)
+    except RuntimeError:
+      pass
 
 
 
 if __name__ == '__main__':
-  use_fuzzing = True
-  mutation_factor = 1.5
-  seed = 20250320
+  init_seed = 20250320
   num_experiments = 5
+  mutation_factor = 1.5
 
-  for i in range(num_experiments):
-    perform_fuzzing_experiments(mutation_factor, use_fuzzing, seed)
-    seed += 1
+  for use_fuzzing in (True, False):
+    seed = init_seed
+    for i in range(num_experiments):
+      perform_fuzzing_experiments(mutation_factor, use_fuzzing, seed)
+      seed += 1

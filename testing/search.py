@@ -108,7 +108,7 @@ class MultiObjectiveGeneticSearcher(MonoObjectiveGeneticSearcher):
 
   def run_GA(self, seed: int):
     """Run the Genetic Algorithm maximizing the fitness score"""
-    ga = pygad.GA(num_generations=50, num_parents_mating=5,
+    ga = pygad.GA(num_generations=49, num_parents_mating=5,
                   fitness_func=self.get_fitness, sol_per_pop=10,
                   num_genes=self.num_genes, gene_space=self.space,
                   mutation_percent_genes=20, save_solutions=True,
@@ -117,8 +117,8 @@ class MultiObjectiveGeneticSearcher(MonoObjectiveGeneticSearcher):
     solution, solution_fitness, _ = ga.best_solution()
     # print(f"Pareto front:\n", ga.pareto_fronts, sep="")
     for j in range(len(ga.solutions)):
-      sol = ga.solutions[i]
-      fit = ga.solutions_fitness[i]
+      sol = ga.solutions[j]
+      fit = ga.solutions_fitness[j]
       self.write_to_log(*sol, *fit, seed, 'genetic')
 
 

@@ -48,12 +48,13 @@ class MutationFuzzer:
 
     # Convert params dict into string
     all_params = params | fixed_params
-    params_strg = ''.join([f'{k}{round(v, 3)}' for k, v in params.items()])
+    params_strg = ''.join([f'{k}{v}' for k, v in params.items()]) + '_'
 
     # Build output file
     model_name = os.path.split(doctor_file)[-1].replace('_doctor.xml', '.xml')
-    output_name_no_params = str(model_name).split('__')[-1]
-    output_path = os.path.join(self.OUTPUT_ROOT, params_strg + '.xml')
+    output_name_no_params = ''.join(re.findall(r"_t\d+", model_name))
+    output_path = os.path.join(self.OUTPUT_ROOT, params_strg + \
+                                    output_name_no_params + '.xml')
     write_doctor_patient_automaton(self.PATIENT_PATH, doctor_file, output_path,
                                    all_params)
     return output_path

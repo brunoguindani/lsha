@@ -210,7 +210,7 @@ def write_environment_doctor_patient_automaton(source_file: str,
 
 if __name__ == '__main__':
   parameters = {'alpha': 0.5, 'beta': 0.5, 'doctor_param': 0.2} | fixed_params
-  source_name = 'safest_05a_rand_traces'
+  source_name = 'safest_04d_delta1'
   source_path = os.path.join('..', 'sha_learning', 'resources', 'learned_sha',
                              source_name + '.log')
   doctor_name = 'doctor_AC_exp'

@@ -7,7 +7,7 @@ import subprocess
 from generate_automata import fixed_params, write_doctor_patient_automaton
 
 
-patient_name = 'safest_05a_rand_traces'
+patient_name = 'safest_04d_delta1'
 
 
 class MutationFuzzer:
@@ -275,7 +275,7 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
   print("\nSeed:", seed, "\n")
   iterations = 500
   runs_per_simul = 10
-  trans_uniform_prob = 0.75
+  trans_uniform_prob = 0.5
   query_idxs = [0, 1, 2]
   log_file = 'testing.csv'
   technique = 'fuzzing' if use_fuzzing else 'random'

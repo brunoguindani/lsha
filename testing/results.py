@@ -35,14 +35,14 @@ for tec, group in df.groupby('technique'):
   group_valid_seed = group_valid.groupby('seed').size()
   mean = group_valid_seed.mean()
   std = group_valid_seed.std()
-  print(tec, "->", mean, "±", std)
-  print(size_full)
+  print(tec, ":", mean, "±", std)
+  # print(size_full)
 
   for query in query_cols:
     group_valid_query = group_valid.loc[ group_valid[query] == 1 ]
     sizes_query = group_valid_query.groupby('seed').size()
     mean_query = sizes_query.mean()
     std_query = sizes_query.std()
-    print(" ", query, "->", mean_query, "±", std_query)
+    print(" ", query, ":", mean_query, "±", round(std_query, 2))
 
-  print("\n")
+  print()

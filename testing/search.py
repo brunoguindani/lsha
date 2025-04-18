@@ -3,16 +3,13 @@ import pygad
 import re
 
 from fuzzing import MutationFuzzer, patient_name
-from generate_automata import query_bounds, query_bound_is_upper
 
 
 class MonoObjectiveGeneticSearcher(MutationFuzzer):
   BASE_FILE = os.path.join('generated', patient_name + '.xml')
 
-  def __init__(self, seed: int, query_idxs: list[int], log_file: str):
+  def __init__(self, seed: int, log_file: str):
     super().__init__(None, seed, log_file)
-    # Indexes of queries to evaluate fitness
-    self.query_idxs = query_idxs
     # Bounds for doctor parameters
     self.space = [{'low': l, 'high': u}
                   for l, u in super().params_bounds.values()
@@ -60,26 +57,18 @@ class MonoObjectiveGeneticSearcher(MutationFuzzer):
     else:
       return value - bound
 
-  def get_signed_distances(self, individual: list) -> tuple[float]:
-    """Compute signed distances associated with each query"""
-    model_file = self.values_to_file(individual)
-    probs = self.eval_probabilistic_queries(model_file, self.query_idxs)
-    distances = []
-    for prob, bound, is_upper in zip(probs, query_bounds.values(),
-                                     query_bound_is_upper):
-      dist = self.get_signed_distance(prob, bound, is_upper)
-      distances.append(dist)
-    print(distances)
-    return tuple(distances)
-
-
   def get_fitness(self, ga: pygad.GA, individual: list, idx: int) -> float:
     """
     Build mutant from `individual` and compute uni-dim. total fitness score
 
-    `ga` and `idx` parameters are required by the PyGAD API
+    Since we are testing to find "bad" doctors, the fitness to maximize is
+    based on the probability of certain negative properties holding: the
+    larger, the better. Note: the `ga` and `idx` parameters are required by the
+    PyGAD API
     """
-    return sum(self.get_signed_distances(individual))
+    model_file = self.values_to_file(individual)
+    probs = self.eval_probabilistic_queries(model_file)
+    return sum(probs)
 
   def run_GA(self):
     """Run the Genetic Algorithm maximizing the fitness score"""
@@ -102,9 +91,14 @@ class MultiObjectiveGeneticSearcher(MonoObjectiveGeneticSearcher):
     """
     Build mutant from `individual` and compute multi-dim. fitness scores
 
-    `ga` and `idx` parameters are required by the PyGAD API
+    Since we are testing to find "bad" doctors, the fitness to maximize is
+    based on the probability of certain negative properties holding: the
+    larger, the better. Note: the `ga` and `idx` parameters are required by the
+    PyGAD API
     """
-    return self.get_signed_distances(individual)
+    model_file = self.values_to_file(individual)
+    probs = self.eval_probabilistic_queries(model_file)
+    return tuple(probs)
 
   def run_GA(self, seed: int):
     """Run the Genetic Algorithm maximizing the fitness score"""
@@ -115,7 +109,8 @@ class MultiObjectiveGeneticSearcher(MonoObjectiveGeneticSearcher):
                   random_seed=int(self.rng.integers(20250000)))
     ga.run()
     solution, solution_fitness, _ = ga.best_solution()
-    # print(f"Pareto front:\n", ga.pareto_fronts, sep="")
+    print("Fitness values with largest element:", solution_fitness)
+    print(f"Pareto front:\n", ga.pareto_fronts, sep="")
     for j in range(len(ga.solutions)):
       sol = ga.solutions[j]
       fit = ga.solutions_fitness[j]
@@ -125,11 +120,10 @@ class MultiObjectiveGeneticSearcher(MonoObjectiveGeneticSearcher):
 
 if __name__ == '__main__':
   seed = 20250320
-  num_experiments = 5
-  query_idxs = [5, 6, 7]
+  num_experiments = 20
   log_file = 'testing.csv'
 
   for i in range(num_experiments):
-    searcher = MultiObjectiveGeneticSearcher(seed, query_idxs, log_file)
+    searcher = MultiObjectiveGeneticSearcher(seed, log_file)
     searcher.run_GA(seed)
     seed += 1

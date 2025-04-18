@@ -14,21 +14,7 @@ distribution_regex = r'(?P<name>\w+)\((?P<value>-?\d+\.\d+)\)'
 location_regex = r"(?P<name>\w+): (?P<flowcond>.+)"
 transition_regex = r"(?P<source>\w+) -> (?P<target>\w+) \((?P<label>[\w.]+)\)"
 
-# 0) upper-bound prob for patient stability
-# 1) lower-bound prob for long non-breathing period
-# 2) lower-bound prob for critical health (sum of bools)
-query_bounds = {
-  'query_bound0': 0.75,
-  'query_bound1': 0.85,
-  'query_bound2': 0.95,
-}
-query_bound_is_upper = [
-  True,
-  False,
-  False,
-]
-
-fixed_params = {'patient_param': 0.2} | query_bounds
+fixed_params = {'patient_param': 0.2}
 
 
 def generate_system_decl(names: list[str]) -> str:

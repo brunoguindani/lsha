@@ -23,6 +23,7 @@ class MutationFuzzer:
                              'learned_sha', patient_name + '.log')
   OUTPUT_ROOT = os.path.join('generated', 'fuzzing')
   REMOVABLE_TRANS_IDS = list(range(10, 32))
+  QUERY_IDXS = [0, 1, 2]
   TRANS_XML_REGEX = r'<transition id="id{trans_id}">.*?</transition>'
   DOC_XML_REGEX = r'<template>\s*<name[^>]*>\s*Doctor\s*</name>.*?</template>'
   LOC_VERIF_REGEX = r'State:\s*\(.*?patient\.(\w+)\s*\)'
@@ -231,11 +232,10 @@ class MutationFuzzer:
       raise RuntimeError("Formula is neither satisfied nor unsatisfied: "
                          + output)
 
-  def count_verified_queries(self, model_file: str, query_idxs: list[int]) \
-                             -> dict[int: int]:
+  def count_verified_queries(self, model_file: str) -> dict[int: int]:
     """Count number of queries within the UPPAAL model that are satisfied"""
-    out = dict.fromkeys(query_idxs, 0)
-    for idx in query_idxs:
+    out = dict.fromkeys(self.QUERY_IDXS, 0)
+    for idx in self.QUERY_IDXS:
       result = self.verify_query_bool(model_file, idx, self.uppaal_seed)
       # if result: print(idx, result)
       out[idx] += result
@@ -257,11 +257,10 @@ class MutationFuzzer:
     else:
       raise RuntimeError(f"Confidence Interval not found in {output}")
 
-  def eval_probabilistic_queries(self, model_file: str,
-                                 query_idxs: list[int]) -> list[float]:
+  def eval_probabilistic_queries(self, model_file: str) -> list[float]:
     """Evaluate probabilities computed in individual UPPAAL queries"""
     out = []
-    for idx in query_idxs:
+    for idx in self.QUERY_IDXS:
       result = self.verify_query_prob(model_file, idx, self.uppaal_seed)
       out.append(result)
       self.uppaal_seed += 1
@@ -276,7 +275,6 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
   iterations = 500
   runs_per_simul = 10
   trans_uniform_prob = 0.5
-  query_idxs = [0, 1, 2]
   log_file = 'testing.csv'
   technique = 'fuzzing' if use_fuzzing else 'random'
 
@@ -321,8 +319,7 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
       fuzzer.store_mutant(mutant)
     # Get vector of verified boolean properties (0s and 1s)
     try:
-      is_verified_list = fuzzer.count_verified_queries(mutant, query_idxs) \
-                               .values()
+      is_verified_list = fuzzer.eval_probabilistic_queries(mutant)
       fuzzer.write_to_log(mutant, *is_verified_list, seed, technique)
     except RuntimeError:
       pass
@@ -331,7 +328,7 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
 
 if __name__ == '__main__':
   init_seed = 20250320
-  num_experiments = 5
+  num_experiments = 20
   mutation_factor = 1.5
 
   for use_fuzzing in (True, False):

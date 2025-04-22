@@ -164,8 +164,9 @@ def compare_given_threshold(input_df: pd.DataFrame, threshold_prob: float):
 
 
 if __name__ == '__main__':
-  df = pd.read_csv('testing_2seeds_test.csv')
-  for p in [0.5, 0.75, 0.9]:
+  df = pd.read_csv('testing.csv')
+  thresholds = [0.9]  # [0.5, 0.75, 0.9]
+  for p in thresholds:
     print(20 * "-", "\nThreshold =", p)
     compare_given_threshold(df, p)
     print(20 * "-")

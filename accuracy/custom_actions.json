@@ -1,253 +1,495 @@
 [
-{
+  {
     "PatientAction":
     {
-        "AirwayObstruction":
+      "AirwayObstruction":
+      {
+        "PatientAction":
         {
-            "PatientAction":
+          "Action":
+          {}
+        },
+        "Severity":
+        {
+          "Scalar0To1":
+          {
+            "Value": 1.0
+          }
+        }
+      }
+    }
+  },
+  {
+    "PatientAction":
+    {
+      "AcuteRespiratoryDistressSyndromeExacerbation":
+      {
+        "PatientAction":
+        {
+          "Action":
+          {}
+        },
+        "Severity": [
+        {
+          "Severity":
+          {
+            "Scalar0To1":
             {
-                "Action":
-                {}
-            },
-            "Severity":
-            {
-                "Scalar0To1":
-                {
-                    "Value": 1.0
-                }
+              "Value": 1.0
             }
-        }
-    }
-},
-{
-    "PatientAction":
-    {
-        "AcuteRespiratoryDistressSyndromeExacerbation":
+          }
+        },
         {
-            "PatientAction":
+          "Compartment": "RightLung",
+          "Severity":
+          {
+            "Scalar0To1":
             {
-                "Action":
-                {}
-            },
-            "Severity": [
-            {
-                "Severity":
-                {
-                    "Scalar0To1":
-                    {
-                        "Value": 1.0
-                    }
-                }
-            },
-            {
-                "Compartment": "RightLung",
-                "Severity":
-                {
-                    "Scalar0To1":
-                    {
-                        "Value": 1.0
-                    }
-                }
-            }]
-        }
-    }
-},
-{
-    "PatientAction":
-    {
-        "Bronchoconstriction":
-        {
-            "PatientAction":
-            {
-                "Action":
-                {}
-            },
-            "Severity":
-            {
-                "Scalar0To1":
-                {
-                    "Value": 0.5
-                }
+              "Value": 1.0
             }
-        }
+          }
+        }]
+      }
     }
-},
-{
+  },
+  {
     "PatientAction":
     {
-        "Dyspnea":
+      "AsthmaAttack":
+      {
+        "PatientAction":
         {
-            "PatientAction":
+          "Action":
+          {}
+        },
+        "Severity":
+        {
+          "Scalar0To1":
+          {
+            "Value": 0.7
+          }
+        }
+      }
+    }
+  },
+  {
+    "PatientAction":
+    {
+      "BrainInjury":
+      {
+        "PatientAction":
+        {
+          "Action":
+          {}
+        },
+        "Severity":
+        {
+          "Scalar0To1":
+          {
+            "Value": 1.0
+          }
+        }
+      }
+    }
+  },
+  {
+    "PatientAction":
+    {
+      "Bronchoconstriction":
+      {
+        "PatientAction":
+        {
+          "Action":
+          {}
+        },
+        "Severity":
+        {
+          "Scalar0To1":
+          {
+            "Value": 0.9
+          }
+        }
+      }
+    }
+  },
+  {
+    "PatientAction":
+    {
+      "ChronicObstructivePulmonaryDiseaseExacerbation":
+      {
+        "PatientAction":
+        {
+          "Action":
+          {}
+        },
+        "BronchitisSeverity":
+        {
+          "Scalar0To1":
+          {
+            "Value": 1.0
+          }
+        },
+        "EmphysemaSeverity": [
+        {
+          "Severity":
+          {
+            "Scalar0To1":
             {
-                "Action":
-                {}
-            },
-            "RespirationRateSeverity":
-            {
-                "Scalar0To1":
-                {
-                    "Value": 1.0
-                }
+              "Value": 1.0
             }
-        }
-    }
-},
-{
-    "PatientAction":
-    {
-        "PneumoniaExacerbation":
+          }
+        },
         {
-            "PatientAction":
+          "Compartment": "RightLung",
+          "Severity":
+          {
+            "Scalar0To1":
             {
-                "Action":
-                {}
-            },
-            "Severity": [
-            {
-                "Severity":
-                {
-                    "Scalar0To1":
-                    {
-                        "Value": 0.6
-                    }
-                }
-            },
-            {
-                "Compartment": "RightLung",
-                "Severity":
-                {
-                    "Scalar0To1":
-                    {
-                        "Value": 0.4
-                    }
-                }
-            }]
-        }
-    }
-},
-{
-    "PatientAction":
-    {
-        "PneumoniaExacerbation":
-        {
-            "PatientAction":
-            {
-                "Action":
-                {}
-            },
-            "Severity": [
-            {
-                "Severity":
-                {
-                    "Scalar0To1":
-                    {
-                        "Value": 1.0
-                    }
-                }
-            },
-            {
-                "Compartment": "RightLung",
-                "Severity":
-                {
-                    "Scalar0To1":
-                    {
-                        "Value": 1.0
-                    }
-                }
-            }]
-        }
-    }
-},
-{
-    "PatientAction":
-    {
-        "AsthmaAttack":
-        {
-            "PatientAction":
-            {
-                "Action":
-                {}
-            },
-            "Severity":
-            {
-                "Scalar0To1":
-                {
-                    "Value": 0.7
-                }
+              "Value": 1.0
             }
-        }
+          }
+        }]
+      }
     }
-},
-{
+  },
+  {
     "PatientAction":
     {
-        "Bronchoconstriction":
+      "Dyspnea":
+      {
+        "PatientAction":
         {
-            "PatientAction":
+          "Action":
+          {}
+        },
+        "RespirationRateSeverity":
+        {
+          "Scalar0To1":
+          {
+            "Value": 1.0
+          }
+        }
+      }
+    }
+  },
+  {
+    "PatientAction":
+    {
+      "PneumoniaExacerbation":
+      {
+        "PatientAction":
+        {
+          "Action":
+          {}
+        },
+        "Severity": [
+        {
+          "Severity":
+          {
+            "Scalar0To1":
             {
-                "Action":
-                {}
-            },
-            "Severity":
-            {
-                "Scalar0To1":
-                {
-                    "Value": 0.9
-                }
+              "Value": 0.6
             }
-        }
-    }
-},
-{
-    "PatientAction":
-    {
-        "PneumoniaExacerbation":
+          }
+        },
         {
-            "PatientAction":
+          "Compartment": "RightLung",
+          "Severity":
+          {
+            "Scalar0To1":
             {
-                "Action":
-                {}
-            },
-            "Severity": [
-            {
-                "Compartment": "RightLung",
-                "Severity":
-                {
-                    "Scalar0To1":
-                    {
-                        "Value": 0.7
-                    }
-                }
-            },
-            {
-                "Severity":
-                {
-                    "Scalar0To1":
-                    {
-                        "Value": 0.7
-                    }
-                }
-            }]
-        }
-    }
-},
-{
-    "PatientAction":
-    {
-        "PulmonaryShuntExacerbation":
-        {
-            "PatientAction":
-            {
-                "Action":
-                {}
-            },
-            "Severity":
-            {
-                "Scalar0To1":
-                {
-                    "Value": 0.9
-                }
+              "Value": 0.4
             }
-        }
+          }
+        }]
+      }
     }
-}]
+  },
+  {
+    "PatientAction":
+    {
+      "PulmonaryShuntExacerbation":
+      {
+        "PatientAction":
+        {
+          "Action":
+          {}
+        },
+        "Severity":
+        {
+          "Scalar0To1":
+          {
+            "Value": 0.9
+          }
+        }
+      }
+    }
+  },
+  {
+    "PatientAction":
+    {
+      "RespiratoryFatigue":
+      {
+        "PatientAction":
+        {
+          "Action":
+          {}
+        },
+        "Severity":
+        {
+          "Scalar0To1":
+          {
+            "Value": 1.0
+          }
+        }
+      }
+    }
+  },
+
+  {
+    "PatientAction":
+    {
+      "AirwayObstruction":
+      {
+        "PatientAction":
+        {
+          "Action":
+          {}
+        },
+        "Severity":
+        {
+          "Scalar0To1":
+          {
+            "Value": 0.7
+          }
+        }
+      }
+    }
+  },
+  {
+    "PatientAction":
+    {
+      "AcuteRespiratoryDistressSyndromeExacerbation":
+      {
+        "PatientAction":
+        {
+          "Action":
+          {}
+        },
+        "Severity": [
+        {
+          "Severity":
+          {
+            "Scalar0To1":
+            {
+              "Value": 0.6
+            }
+          }
+        },
+        {
+          "Compartment": "RightLung",
+          "Severity":
+          {
+            "Scalar0To1":
+            {
+              "Value": 0.6
+            }
+          }
+        }]
+      }
+    }
+  },
+  {
+    "PatientAction":
+    {
+      "AsthmaAttack":
+      {
+        "PatientAction":
+        {
+          "Action":
+          {}
+        },
+        "Severity":
+        {
+          "Scalar0To1":
+          {
+            "Value": 1.0
+          }
+        }
+      }
+    }
+  },
+  {
+    "PatientAction":
+    {
+      "BrainInjury":
+      {
+        "PatientAction":
+        {
+          "Action":
+          {}
+        },
+        "Severity":
+        {
+          "Scalar0To1":
+          {
+            "Value": 0.8
+          }
+        }
+      }
+    }
+  },
+  {
+    "PatientAction":
+    {
+      "Bronchoconstriction":
+      {
+        "PatientAction":
+        {
+          "Action":
+          {}
+        },
+        "Severity":
+        {
+          "Scalar0To1":
+          {
+            "Value": 1.0
+          }
+        }
+      }
+    }
+  },
+  {
+    "PatientAction":
+    {
+      "ChronicObstructivePulmonaryDiseaseExacerbation":
+      {
+        "PatientAction":
+        {
+          "Action":
+          {}
+        },
+        "BronchitisSeverity":
+        {
+          "Scalar0To1":
+          {
+            "Value": 0.7
+          }
+        },
+        "EmphysemaSeverity": [
+        {
+          "Severity":
+          {
+            "Scalar0To1":
+            {
+              "Value": 0.7
+            }
+          }
+        },
+        {
+          "Compartment": "RightLung",
+          "Severity":
+          {
+            "Scalar0To1":
+            {
+              "Value": 0.7
+            }
+          }
+        }]
+      }
+    }
+  },
+  {
+    "PatientAction":
+    {
+      "Dyspnea":
+      {
+        "PatientAction":
+        {
+          "Action":
+          {}
+        },
+        "RespirationRateSeverity":
+        {
+          "Scalar0To1":
+          {
+            "Value": 0.9
+          }
+        }
+      }
+    }
+  },
+  {
+    "PatientAction":
+    {
+      "PneumoniaExacerbation":
+      {
+        "PatientAction":
+        {
+          "Action":
+          {}
+        },
+        "Severity": [
+        {
+          "Severity":
+          {
+            "Scalar0To1":
+            {
+              "Value": 0.8
+            }
+          }
+        },
+        {
+          "Compartment": "RightLung",
+          "Severity":
+          {
+            "Scalar0To1":
+            {
+              "Value": 0.9
+            }
+          }
+        }]
+      }
+    }
+  },
+  {
+    "PatientAction":
+    {
+      "PulmonaryShuntExacerbation":
+      {
+        "PatientAction":
+        {
+          "Action":
+          {}
+        },
+        "Severity":
+        {
+          "Scalar0To1":
+          {
+            "Value": 1.0
+          }
+        }
+      }
+    }
+  },
+  {
+    "PatientAction":
+    {
+      "RespiratoryFatigue":
+      {
+        "PatientAction":
+        {
+          "Action":
+          {}
+        },
+        "Severity":
+        {
+          "Scalar0To1":
+          {
+            "Value": 0.8
+          }
+        }
+      }
+    }
+  }
+]

@@ -5,7 +5,7 @@ import os
 
 
 engine_file = "../breathe.engine/states/StandardFemale@0s.json"
-rng = np.random.default_rng(seed=20250417)
+rng = np.random.default_rng(seed=20250427)
 
 
 @dataclass
@@ -24,9 +24,9 @@ PARAMS = [
                                                           0.21, 1.0),
   VentilatorParam("InspiratoryPeriod", "ScalarTime", "s", 0.5, 1, 0.1, 5),
   VentilatorParam("PositiveEndExpiratoryPressure", "ScalarPressure", "cmH2O",
-                                                          1, 5, 0, 20),
-  VentilatorParam("RespirationRate", "ScalarFrequency", "1/min", 2, 12, 5, 40),
-  VentilatorParam("TidalVolume", "ScalarVolume", "mL", 100, 900, 100, 2000),
+                                                          1, 6, 5, 25),
+  VentilatorParam("RespirationRate", "ScalarFrequency", "1/min", 2, 12, 6, 18),
+  VentilatorParam("TidalVolume", "ScalarVolume", "mL", 50, 400, 300, 500),
 ]
 
 INIT_STATE = [p.init for p in PARAMS]

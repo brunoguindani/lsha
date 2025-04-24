@@ -37,6 +37,7 @@
     <transition id="id10">
       <source ref="id2"/>
       <target ref="id1"/>
+      <label kind="guard" x="246" y="25">tv&lt;=350</label>
       <label kind="synchronisation" x="255" y="8">rr1?</label>
       <nail x="255" y="8"/>
     </transition>
@@ -106,6 +107,7 @@
     <transition id="id22">
       <source ref="id0"/>
       <target ref="id1"/>
+      <label kind="guard" x="51" y="51">tv&lt;=350</label>
       <label kind="synchronisation" x="68" y="34">rr1?</label>
       <nail x="85" y="25"/>
     </transition>

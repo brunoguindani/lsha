@@ -46,10 +46,10 @@ safest_cs = SystemUnderLearning([vol], events, parse_data, label_event, get_vol_
 test = False
 if test:
     root_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, os.pardir, 'breathe_logs'))
-    traces_folder = os.path.join(root_folder, 'processed_signals')
+    traces_folder = os.path.join(root_folder, 'processed_signals', 'accuracy')
     traces_files = os.listdir(traces_folder)
     traces_files.sort()
-    env_traces_folder = os.path.join(root_folder, 'environment_traces')
+    env_traces_folder = os.path.join(root_folder, 'environment_traces', 'accuracy')
     os.makedirs(env_traces_folder, exist_ok=True)
 
     for file in traces_files:
@@ -64,8 +64,24 @@ if test:
         safest_cs.process_data(file_path)
         timed_trace = safest_cs.timed_traces[-1]
         trace = Trace(tt=timed_trace)
-        print(file, len(trace))
-        print(trace, "\n")
+
+        ## Identification of last event and tv value
+        tv_signal = [s for s in new_signals if s.label == 'tv'][0]
+        last_change_t = 60*timed_trace.t[-1].min + timed_trace.t[-1].sec
+        last_event = timed_trace.e[-1]
+        for p in tv_signal.points:
+          p_t = 60*p.timestamp.min + p.timestamp.sec
+          if abs(p_t - last_change_t) < 0.01:
+            last_point = p
+            break
+        last_point_idx = tv_signal.points.index(last_point)
+        # print(file)
+        # print("t-1:", dict(zip(signal_labels, [round(s.points[last_point_idx-1].value, 2) for s in new_signals])))
+        # print("t  :", dict(zip(signal_labels, [round(s.points[last_point_idx].value, 2) for s in new_signals])))
+        # print(last_change_t, last_event, sep=", ")
+        print(file, ",", int(tv_signal.points[last_point_idx].value), sep="")
+
+        # print(trace, "\n")
         # Write environment trace in separate file
         env_trace_file = os.path.join(env_traces_folder, file + '.csv')
         with open(env_trace_file, 'w') as f:

@@ -103,10 +103,10 @@ def display_dataframe(df_, metrics: list[str] | None = None,
 
 if __name__ == '__main__':
   base_name = sys.argv[1]
-  log_file = os.path.join('logs', base_name + '.txt')
+  log_file = os.path.join('logs', 'accuracy', base_name + '.txt')
   os.makedirs('signals', exist_ok=True)
   png_file = os.path.join('signals', base_name + '.png')
-  csv_file = os.path.join('signals', base_name + '.csv')
+  csv_file = os.path.join('signals', 'accuracy', base_name + '.csv')
 
   df = parse_log(log_file)
   # Remove outliers
@@ -115,4 +115,4 @@ if __name__ == '__main__':
   df.to_csv(csv_file)
 
   all_metrics = (patient_label_to_metric | ventilator_label_to_metric).values()
-  display_dataframe(df, metrics=all_metrics, file=png_file)
+  # display_dataframe(df, metrics=all_metrics, file=png_file)

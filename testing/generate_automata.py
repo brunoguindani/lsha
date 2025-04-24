@@ -205,10 +205,12 @@ if __name__ == '__main__':
   output_path = os.path.join('generated', file_name)
   write_doctor_patient_automaton(source_path, doctor_path, output_path,
                                  parameters)
-  env_traces_folder = os.path.join('..', 'breathe_logs', 'environment_traces')
+  env_traces_folder = os.path.join('..', 'breathe_logs', 'environment_traces',
+                                   'accuracy')
   for trace_name in os.listdir(env_traces_folder):
     trace_csv_path = os.path.join(env_traces_folder, trace_name)
     output_name = source_name + '_' + trace_name.replace('.csv', '.xml')
     output_path = os.path.join('generated', 'accuracy', output_name)
+    print(output_path)
     write_environment_doctor_patient_automaton(source_path, doctor_path,
         trace_csv_path, output_path, parameters)

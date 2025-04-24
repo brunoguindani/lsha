@@ -67,12 +67,12 @@ def apply_transformations(df: pd.DataFrame, columns: list[str]) \
 
 if __name__ == '__main__':
   base_name = sys.argv[1]
-  input_csv = os.path.join('signals', base_name + '.csv')
+  input_csv = os.path.join('signals', 'accuracy', base_name + '.csv')
   os.makedirs('processed_signals', exist_ok=True)
-  processed_csv_folder = os.path.join('processed_signals', base_name)
+  processed_csv_folder = os.path.join('processed_signals', 'accuracy', base_name)
   processed_csv = os.path.join(processed_csv_folder, base_name + '.csv')
   os.makedirs('labeled_signals', exist_ok=True)
-  labeled_csv = os.path.join('labeled_signals', base_name + '.csv')
+  labeled_csv = os.path.join('labeled_signals', 'accuracy', base_name + '.csv')
   png_file = os.path.join('labeled_signals', base_name + '.png')
   patient_metrics = list(patient_label_to_metric.values())
   ventilator_metrics = list(ventilator_label_to_metric.values())
@@ -94,5 +94,5 @@ if __name__ == '__main__':
   df_labels.to_csv(labeled_csv)
   print("DataFrame saved to", labeled_csv)
   df_colors = df_labels.replace(values_to_colors)
-  display_dataframe(df_in, metrics=patient_metrics, colors=df_colors,
-                           file=png_file)
+  # display_dataframe(df_in, metrics=patient_metrics, colors=df_colors,
+  #                          file=png_file)

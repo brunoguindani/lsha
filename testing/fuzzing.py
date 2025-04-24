@@ -2,6 +2,7 @@ from collections import defaultdict
 import numpy as np
 import os
 import re
+import shutil
 import subprocess
 
 from generate_automata import fixed_params, write_doctor_patient_automaton
@@ -23,6 +24,8 @@ class MutationFuzzer:
                              'learned_sha', patient_name + '.log')
   OUTPUT_ROOT = os.path.join('generated', 'fuzzing')
   REMOVABLE_TRANS_IDS = list(range(10, 32))
+  QUERY_FILE = os.path.join('templates', 'requirements.q')
+  SIMULATION_QUERY_FILE = os.path.join('templates', 'simulation_query.q')
   QUERY_IDXS = [0, 1, 2]
   TRANS_XML_REGEX = r'<transition id="id{trans_id}">.*?</transition>'
   DOC_XML_REGEX = r'<template>\s*<name[^>]*>\s*Doctor\s*</name>.*?</template>'
@@ -187,7 +190,6 @@ class MutationFuzzer:
     Count average number of covered locations and transitions by executing and
     checking `num_runs` traces
     """
-    query_idx = 4  # index of fake property to execute simulations
     location_counts = defaultdict(int)
     transition_counts = defaultdict(int)
     base_seed = str(self.uppaal_seed)
@@ -196,8 +198,8 @@ class MutationFuzzer:
     for i in range(num_runs):
       # Build command to execute
       seed_i = base_seed + str(i).zfill(suffix_len)
-      cmd = ['verifyta', model_file, '-q', '-r', str(seed_i), '--query-index',
-             str(query_idx), '-t0']
+      cmd = ['verifyta', model_file, self.SIMULATION_QUERY_FILE, '-q', '-r',
+             str(seed_i), '--query-index', '0', '-t0']
       # print(cmd)
       output = subprocess.run(cmd, capture_output=True, text=True).stdout
       # Find and count coverage of locations and transitions
@@ -217,36 +219,11 @@ class MutationFuzzer:
     self.uppaal_seed += 1
     return location_counts, transition_counts
 
-  def verify_query_bool(self, model_file: str, query_idx: int, seed: int) \
-                        -> bool:
-    """Return whether query `query_idx` from the UPPAAL model is satisfied"""
-    cmd = ['verifyta', model_file, '-q', '-r', str(seed), '--query-index',
-           str(query_idx)]
-    # print(cmd)
-    output = subprocess.run(cmd, capture_output=True, text=True).stdout
-    if self.SAT_STRG in output:
-      return True
-    elif self.NOTSAT_STRG in output:
-      return False
-    else:
-      raise RuntimeError("Formula is neither satisfied nor unsatisfied: "
-                         + output)
-
-  def count_verified_queries(self, model_file: str) -> dict[int: int]:
-    """Count number of queries within the UPPAAL model that are satisfied"""
-    out = dict.fromkeys(self.QUERY_IDXS, 0)
-    for idx in self.QUERY_IDXS:
-      result = self.verify_query_bool(model_file, idx, self.uppaal_seed)
-      # if result: print(idx, result)
-      out[idx] += result
-      self.uppaal_seed += 1
-    return out
-
   def verify_query_prob(self, model_file: str, query_idx: int, seed: int) \
                         -> float:
     """Compute pointwise estimate of probabilistic query"""
-    cmd = ['verifyta', model_file, '-q', '-r', str(seed), '--query-index',
-           str(query_idx)]
+    cmd = ['verifyta', model_file, self.QUERY_FILE, '-q', '-r', str(seed),
+           '--query-index', str(query_idx)]
     # print(cmd)
     output = subprocess.run(cmd, capture_output=True, text=True).stdout
     # Find Confidence Interval in output
@@ -269,7 +246,7 @@ class MutationFuzzer:
 
 
 def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
-                                seed: int) -> int:
+                                seed: int):
   """If use_fuzzing is False, parameters will be uniformly randomly sampled"""
   print("\nSeed:", seed, "\n")
   iterations = 500
@@ -278,13 +255,16 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
   log_file = 'testing.csv'
   technique = 'fuzzing' if use_fuzzing else 'random'
 
-  # Initialize fuzzer and coverage
+  # Initialize fuzzer and clean up output folder
   fuzzer = MutationFuzzer(mutation_factor, seed, log_file)
+  shutil.rmtree(fuzzer.OUTPUT_ROOT, ignore_errors=True)
+  os.makedirs(fuzzer.OUTPUT_ROOT)
+  # Create first mutant
   initial_model = os.path.join('templates', 'doctor_AC_exp.xml')
   params = {k: (v[0] + v[1])/2 for k, v in fuzzer.params_bounds.items()}
   mutant = fuzzer.write_mutant(initial_model, params)
   fuzzer.store_mutant(mutant)
-
+  # Initialize coverages
   loc, trans = fuzzer.compute_elements_coverage(mutant, runs_per_simul)
   curr_loc_coverage = len(loc)
   curr_trans_coverage = len(trans)
@@ -324,6 +304,8 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
     except RuntimeError:
       pass
 
+  # Clean up all mutant files
+  shutil.rmtree(fuzzer.OUTPUT_ROOT)
 
 
 if __name__ == '__main__':

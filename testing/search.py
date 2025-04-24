@@ -1,6 +1,7 @@
 import os
 import pygad
 import re
+import shutil
 
 from fuzzing import MutationFuzzer, patient_name
 
@@ -102,6 +103,10 @@ class MultiObjectiveGeneticSearcher(MonoObjectiveGeneticSearcher):
 
   def run_GA(self, seed: int):
     """Run the Genetic Algorithm maximizing the fitness score"""
+    # Clean up output folder
+    shutil.rmtree(self.OUTPUT_ROOT, ignore_errors=True)
+    os.makedirs(self.OUTPUT_ROOT)
+
     ga = pygad.GA(num_generations=49, num_parents_mating=5,
                   fitness_func=self.get_fitness, sol_per_pop=10,
                   num_genes=self.num_genes, gene_space=self.space,
@@ -116,7 +121,8 @@ class MultiObjectiveGeneticSearcher(MonoObjectiveGeneticSearcher):
       fit = ga.solutions_fitness[j]
       self.write_to_log(*sol, *fit, seed, 'genetic')
 
-
+    # Clean up all mutant files
+    shutil.rmtree(self.OUTPUT_ROOT)
 
 if __name__ == '__main__':
   seed = 20250320

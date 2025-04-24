@@ -3,18 +3,27 @@ import os
 import pandas as pd
 import re
 
+env_loc_template_file = os.path.join('templates', 'env_loc_template.xml')
+env_trans_template_file = os.path.join('templates', 'env_trans_template.xml')
+env_template_file = os.path.join('templates', 'environment_template.xml')
 location_template_file = os.path.join('templates', 'location_template.xml')
 template_file = os.path.join('templates', 'safest_template.xml')
 transition_template_file = os.path.join('templates', 'transition_template.xml')
-env_template_file = os.path.join('templates', 'environment_template.xml')
-env_loc_template_file = os.path.join('templates', 'env_loc_template.xml')
-env_trans_template_file = os.path.join('templates', 'env_trans_template.xml')
+unknown_loc_file = os.path.join('templates', 'unknown_loc.xml')
+unknown_name = 'unknown_loc'
 
 distribution_regex = r'(?P<name>\w+)\((?P<value>-?\d+\.\d+)\)'
 location_regex = r"(?P<name>\w+): (?P<flowcond>.+)"
 transition_regex = r"(?P<source>\w+) -> (?P<target>\w+) \((?P<label>[\w.]+)\)"
 
 fixed_params = {'patient_param': 0.2}
+
+ventilator_params = ('fiox', 'peep', 'rera', 'tvol')
+ventilator_suffixes = (1, 3)
+other_channels = {'on?', 'off?'}
+listened_channels = {f'{p}{s}?' for p in ventilator_params \
+                                for s in ventilator_suffixes}
+listened_channels.update(other_channels)
 
 
 def generate_system_decl(names: list[str]) -> str:
@@ -29,7 +38,8 @@ def generate_system_decl(names: list[str]) -> str:
 
 
 def _write_automaton(source_file: str, output_path: str, templates_xml: str,
-                     environment: bool, parameters: dict[str: float]) -> None:
+                     environment: bool, parameters: dict[str: float],
+                     unknown_loc: bool) -> None:
   # Read files into strings
   with open(template_file, 'r') as f, \
        open(location_template_file, 'r') as fl, \
@@ -40,9 +50,9 @@ def _write_automaton(source_file: str, output_path: str, templates_xml: str,
     transition_template = ft.read()
     source = fs.readlines()
 
-  # Initialize strings that we will incrementally build
-  locations_strg = ''
-  transitions_strg = ''
+  # Initialize lists of elements that we will incrementally build
+  locations_list = []
+  transitions_list = []
 
   # Initialize coordinate-related objects
   location_coordinates = {}
@@ -51,9 +61,12 @@ def _write_automaton(source_file: str, output_path: str, templates_xml: str,
   xy_upper_bound = 1000
   rng = np.random.default_rng(seed=20250312)
 
-  # Initialize maps (distributions -> values, locations -> distributions)
+  # Initialize other relevant dicts
   distrib_values = {'None': 400}
   locations_distrib = {}
+  locations_out_channels = {}
+
+  # Choose channel type for patient actions
   patient_symbol = '?' if environment else '!'
 
   # Collect distribution values
@@ -78,8 +91,9 @@ def _write_automaton(source_file: str, output_path: str, templates_xml: str,
         name=location_name,
         x=x, name_x=x-40, inv_x=x-40, rate_x=x-40,
         y=y, name_y=y-40, inv_y=y-30, rate_y=y-20)
-      locations_strg += new_location
+      locations_list.append(new_location)
       location_coordinates[location_name] = (x, y)
+      locations_out_channels[location_name] = set()
 
   # Parse transitions
   for line in source:
@@ -104,13 +118,38 @@ def _write_automaton(source_file: str, output_path: str, templates_xml: str,
         # Transition of the form rera3 -> listened by patient
         bool_assignment = ''
         transition_label += '?'
+        locations_out_channels[source_name].add(transition_label)
       # Initialize transition string
       location_value = distrib_values[ locations_distrib[target_name] ]
       new_transition = transition_template.format(id=line.strip(),
         source=source_name, target=target_name, label=transition_label,
         ass_value=location_value, label_x=x, label_y=y, ass_x=x, ass_y=y+10,
         bool_assignment=bool_assignment)
-      transitions_strg += new_transition
+      transitions_list.append(new_transition)
+
+  # Add 'unknown' location and corresponding transitions
+  if unknown_loc:
+    with open(unknown_loc_file, 'r') as f:
+      unknown_loc_strg = f.read()
+    locations_list.append(unknown_loc_strg)
+
+    # Loop over all parsed locations
+    for loc, out_channels in locations_out_channels.items():
+      # For each channel not already outgoing from loc, add a transition that
+      # ends in the 'unknown' location
+      missing_channels = listened_channels.difference(out_channels)
+      for chan in missing_channels:
+        x = (location_coordinates[loc][0] + 1050) // 2
+        y = (location_coordinates[loc][1] +  500) // 2
+        new_id = '_'.join((loc, chan, unknown_name))
+        new_transition = transition_template.format(id=new_id, source=loc,
+          target=unknown_name, label=chan, ass_value=0, label_x=x, label_y=y,
+          ass_x=x, ass_y=y+10, bool_assignment='')
+        transitions_list.append(new_transition)
+
+  # Join lists into combined strings
+  locations_strg = ''.join(locations_list)
+  transitions_strg = ''.join(transitions_list)
 
   # Create system declaration
   system_comps = ['doctor', 'patient']
@@ -132,7 +171,7 @@ def write_doctor_patient_automaton(source_file: str, doctor_path: str,
   with open(doctor_path, 'r') as f:
     doctor_xml = f.read()
   _write_automaton(source_file, output_path, doctor_xml, False,
-                   parameters)
+                   parameters, True)
 
 
 def generate_environment_xml(events_csv: str) -> str:
@@ -191,7 +230,7 @@ def write_environment_doctor_patient_automaton(source_file: str,
   env_xml = generate_environment_xml(events_csv)
   templates_xml = env_xml + doctor_xml
   _write_automaton(source_file, output_path, templates_xml, True,
-                   parameters)
+                   parameters, True)
 
 
 if __name__ == '__main__':
@@ -205,6 +244,9 @@ if __name__ == '__main__':
   output_path = os.path.join('generated', file_name)
   write_doctor_patient_automaton(source_path, doctor_path, output_path,
                                  parameters)
+  print(output_path)
+
+  # Write automata for accuracy tests
   env_traces_folder = os.path.join('..', 'breathe_logs', 'environment_traces',
                                    'accuracy')
   for trace_name in os.listdir(env_traces_folder):

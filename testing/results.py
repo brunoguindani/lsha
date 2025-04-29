@@ -123,7 +123,7 @@ def compare_given_threshold(input_df: pd.DataFrame, threshold_prob: float):
     ax.legend(handles, technique_labels, title="Techniques", loc="upper right")
 
     plt.tight_layout()
-    file = os.path.join('plots', f'testing_{threshold_prob}_{query}.svg')
+    file = os.path.join('plots', f'{query}_{threshold_prob:.2f}.svg')
     plt.savefig(file)
     plt.close()
 
@@ -165,7 +165,12 @@ def compare_given_threshold(input_df: pd.DataFrame, threshold_prob: float):
 
 if __name__ == '__main__':
   df = pd.read_csv('testing.csv')
-  thresholds = [0.9]  # [0.5, 0.75, 0.9]
+  # for i in range(3):
+  #   col = f'query{i}'
+  #   ax = df[col].hist()
+  #   ax.set_title(col)
+  #   plt.show()
+  thresholds = [0.5]
   for p in thresholds:
     print(20 * "-", "\nThreshold =", p)
     compare_given_threshold(df, p)

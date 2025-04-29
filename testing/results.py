@@ -59,19 +59,19 @@ def compare_given_threshold(input_df: pd.DataFrame, threshold_prob: float):
   stats_real = {}
 
   for query in query_cols:
-    print("Requirement:", query)
+    # print("Requirement:", query)
 
     defect_counts = {}
     realistic_counts = {}
     technique_labels = []
 
     for tec, group in df.groupby('technique'):
-      print("Technique", tec)
+      # print("Technique", tec)
       group_def = group.loc[group[query] == 1]
       group_def_real = filter(group_def, is_realistic)
 
-      summarize(group_def, " Defects")
-      summarize(group_def_real, " of which realistic")
+      # summarize(group_def, " Defects")
+      # summarize(group_def_real, " of which realistic")
 
       defect_counts[tec] = get_counts(group_def).values
       realistic_counts[tec] = get_counts(group_def_real).values
@@ -95,12 +95,14 @@ def compare_given_threshold(input_df: pd.DataFrame, threshold_prob: float):
       color = colors[i]
 
       bp_def = ax.boxplot(def_data, positions=[defect_positions[i]],
-                          widths=box_width, patch_artist=True)
+                          widths=box_width, patch_artist=True,
+                          medianprops=dict(color='red'))
       for patch in bp_def['boxes']:
         patch.set_facecolor(color)
 
       bp_real = ax.boxplot(real_data, positions=[realistic_positions[i]],
-                           widths=box_width, patch_artist=True)
+                           widths=box_width, patch_artist=True,
+                           medianprops=dict(color='red'))
       for patch in bp_real['boxes']:
         patch.set_facecolor(color)
 
@@ -114,8 +116,7 @@ def compare_given_threshold(input_df: pd.DataFrame, threshold_prob: float):
     ax.tick_params(axis='x')
 
     all_data = list(defect_counts.values()) + list(realistic_counts.values())
-    max_y = max([max(lst) if len(lst) > 0 else 0 for lst in all_data] + [50])
-    ax.set_yticks(range(0, max_y + 51, 50))
+    ax.set_yticks(range(0, 505, 50))
     ax.yaxis.grid(True)
     ax.set_ylim(0, 505)
 
@@ -165,11 +166,15 @@ def compare_given_threshold(input_df: pd.DataFrame, threshold_prob: float):
 
 if __name__ == '__main__':
   df = pd.read_csv('testing.csv')
-  # for i in range(3):
+  # queries = 3
+  # fig, axes = plt.subplots(1, queries)
+  # for i in range(queries):
   #   col = f'query{i}'
-  #   ax = df[col].hist()
+  #   print(col)
+  #   ax = axes[i]
+  #   ax.hist(df[col])
   #   ax.set_title(col)
-  #   plt.show()
+  # plt.show()
   thresholds = [0.5]
   for p in thresholds:
     print(20 * "-", "\nThreshold =", p)

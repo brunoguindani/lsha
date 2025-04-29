@@ -2,6 +2,7 @@ import os
 import pygad
 import re
 import shutil
+import sys
 
 from fuzzing import MutationFuzzer, patient_name
 
@@ -126,7 +127,7 @@ class MultiObjectiveGeneticSearcher(MonoObjectiveGeneticSearcher):
 
 if __name__ == '__main__':
   seed = 20250320
-  num_experiments = 20
+  num_experiments = int(sys.argv[1])
   log_file = 'testing.csv'
 
   for i in range(num_experiments):

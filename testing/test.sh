@@ -1,4 +1,5 @@
 #!/bin/bash
-python fuzzing.py
-python search.py
+numexp=$1
+python fuzzing.py $numexp
+python search.py $numexp
 # python results.py

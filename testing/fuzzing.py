@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 
 from generate_automata import fixed_params, write_doctor_patient_automaton
 
@@ -310,7 +311,7 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
 
 if __name__ == '__main__':
   init_seed = 20250320
-  num_experiments = 20
+  num_experiments = int(sys.argv[1])
   mutation_factor = 1.5
 
   for use_fuzzing in (True, False):

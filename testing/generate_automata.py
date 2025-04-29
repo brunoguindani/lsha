@@ -230,7 +230,7 @@ def write_environment_doctor_patient_automaton(source_file: str,
   env_xml = generate_environment_xml(events_csv)
   templates_xml = env_xml + doctor_xml
   _write_automaton(source_file, output_path, templates_xml, True,
-                   parameters, True)
+                   parameters, False)
 
 
 if __name__ == '__main__':

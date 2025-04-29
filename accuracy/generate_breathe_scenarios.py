@@ -148,8 +148,8 @@ if __name__ == '__main__':
     file_path = os.path.join(root_folder, f'accuracy_{i_str}.json')
     print(f"Generating scenario {i} -> {file_path}")
     data = generate_random_scenario(
-      num_events=20,
-      time_interval=(3, 6),
+      num_events=10,
+      time_interval=(8, 12),
       file_path=file_path,
       initial_action=action
     )

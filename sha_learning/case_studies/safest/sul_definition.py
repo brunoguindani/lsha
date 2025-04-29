@@ -52,6 +52,13 @@ if test:
     env_traces_folder = os.path.join(root_folder, 'environment_traces', 'accuracy')
     os.makedirs(env_traces_folder, exist_ok=True)
 
+    def get_timestamp_index(signal: SampledSignal, ts: Timestamp):
+      t = 60*ts.min + ts.sec
+      for p in signal.points:
+        t_p = 60*p.timestamp.min + p.timestamp.sec
+        if abs(t_p - t) < 0.01:
+          return signal.points.index(p)
+
     for file in traces_files:
         file_path = os.path.join(traces_folder, file)
         # Testing data to signals conversion
@@ -67,21 +74,16 @@ if test:
 
         ## Identification of last event and tv value
         tv_signal = [s for s in new_signals if s.label == 'tv'][0]
-        last_change_t = 60*timed_trace.t[-1].min + timed_trace.t[-1].sec
-        last_event = timed_trace.e[-1]
-        for p in tv_signal.points:
-          p_t = 60*p.timestamp.min + p.timestamp.sec
-          if abs(p_t - last_change_t) < 0.01:
-            last_point = p
-            break
-        last_point_idx = tv_signal.points.index(last_point)
+        last_change_ts = timed_trace.t[-1]
+
+        last_point_idx = get_timestamp_index(tv_signal, last_change_ts)
         # print(file)
         # print("t-1:", dict(zip(signal_labels, [round(s.points[last_point_idx-1].value, 2) for s in new_signals])))
         # print("t  :", dict(zip(signal_labels, [round(s.points[last_point_idx].value, 2) for s in new_signals])))
-        # print(last_change_t, last_event, sep=", ")
         print(file, ",", int(tv_signal.points[last_point_idx].value), sep="")
 
         # print(trace, "\n")
+        print(file, '"' + ','.join([e.symbol for e in trace.events]) + '"', int(tv_signal.points[last_point_idx].value), sep=",")
         # Write environment trace in separate file
         env_trace_file = os.path.join(env_traces_folder, file + '.csv')
         with open(env_trace_file, 'w') as f:
@@ -93,6 +95,7 @@ if test:
             if event in env_events:
               f.write(f'{secs},{event}\n')
 
+    exit()
     # Test segment identification
     test_trace = Trace(safest_cs.traces[0][:1])
     segments = safest_cs.get_segments(test_trace)

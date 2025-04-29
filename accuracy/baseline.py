@@ -122,7 +122,7 @@ if __name__ == '__main__':
 
   # Print predictions on test set
   print("\n", type(model), ":", sep="")
-  for lab, seq, tar in zip(labels, seq_test, tar_test):
+  for seq in seq_test:
     # Remove events that do not appear in training traces
     seq = [s for s in seq if s != 'hr1']
 

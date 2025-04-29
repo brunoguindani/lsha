@@ -29,12 +29,14 @@ class HiddenPrints:
     sys.stdout.close()
     sys.stdout = self._original_stdout
 
-def read_data(file: str) -> tuple[list[str], list[list[str]], list[int]]:
+def read_data(file: str) -> tuple[list[str], list[list[str]], list[list[int]],
+                                  list[int]]:
   df = pd.read_csv(file, index_col='scenario')
   index = df.index.tolist()
   sequences = [row.split(',') for row in df['events']]
-  targets = df['tv'].tolist()
-  return index, sequences, targets
+  values = [[int(v) for v in row.split(',')] for row in df['values']]
+  targets = df['target'].tolist()
+  return index, sequences, values, targets
 
 def get_cnn_1():
   model = Sequential()
@@ -100,31 +102,33 @@ def get_xgboost():
                            colsample_bytree=0.8, random_state=42, n_jobs=-1)
   return model, {}
 
-# Read data for training and testing
-_, seq_train, tar_train = read_data('training_data.csv')
-labels, seq_test, tar_test = read_data('test_data.csv')
 
-# Fit encoder to transform events into categorical variables
-encoder = LabelEncoder()
-all_letters = sorted(set(l for seq in seq_train for l in seq))
-encoder.fit(all_letters)
-# Get features and targets
-X = pad_sequences([encoder.transform(s) for s in seq_train], padding='post')
-y = np.array(tar_train)
+if __name__ == '__main__':
+  # Read data for training and testing
+  _, seq_train, _, tar_train = read_data('training_data.csv')
+  labels, seq_test, _, tar_test = read_data('test_data.csv')
 
-# Train model
-model, fit_args = get_rnn_1()
-model.fit(X, y, **fit_args)
+  # Fit encoder to transform events into categorical variables
+  encoder = LabelEncoder()
+  all_letters = sorted(set(l for seq in seq_train for l in seq))
+  encoder.fit(all_letters)
+  # Get features and targets
+  X = pad_sequences([encoder.transform(s) for s in seq_train], padding='post')
+  y = np.array(tar_train)
 
-# Print predictions on test set
-print("\n", type(model), ":", sep="")
-for lab, seq, tar in zip(labels, seq_test, tar_test):
-  # Remove events that do not appear in training traces
-  seq = [s for s in seq if s != 'hr1']
+  # Train model
+  model, fit_args = get_xgboost()
+  model.fit(X, y, **fit_args)
 
-  test_encoded = encoder.transform(seq)
-  test_encoded = pad_sequences([test_encoded], maxlen=X.shape[1],
-                                               padding='post')
-  with HiddenPrints():
-    prediction = model.predict(test_encoded)
-  print(int(prediction))
+  # Print predictions on test set
+  print("\n", type(model), ":", sep="")
+  for lab, seq, tar in zip(labels, seq_test, tar_test):
+    # Remove events that do not appear in training traces
+    seq = [s for s in seq if s != 'hr1']
+
+    test_encoded = encoder.transform(seq)
+    test_encoded = pad_sequences([test_encoded], maxlen=X.shape[1],
+                                                 padding='post')
+    with HiddenPrints():
+      prediction = model.predict(test_encoded)
+    print(int(prediction))

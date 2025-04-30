@@ -6,7 +6,7 @@ from tensorflow.keras.layers import Concatenate, Conv1D, Dense, Dropout, \
 from tensorflow.keras.models import Model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-from baseline import HiddenPrints, read_data
+from utils import HiddenPrints, read_data
 
 
 def get_event_signal_model(max_event_len: int, max_signal_len: int):

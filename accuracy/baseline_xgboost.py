@@ -4,7 +4,7 @@ from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import xgboost as xgb
 
-from baseline import read_data, seed
+from utils import read_data, seed
 
 
 def build_features(event_seqs, signal_seqs, max_event_len, max_signal_len):

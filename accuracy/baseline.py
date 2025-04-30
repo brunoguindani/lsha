@@ -34,7 +34,7 @@ def read_data(file: str) -> tuple[list[str], list[list[str]], list[list[int]],
   df = pd.read_csv(file, index_col='scenario')
   index = df.index.tolist()
   sequences = [row.split(',') for row in df['events']]
-  values = [[int(v) for v in row.split(',')] for row in df['values']]
+  values = [[int(v) for v in row.split(',')] for row in df['signals']]
   targets = df['target'].tolist()
   return index, sequences, values, targets
 

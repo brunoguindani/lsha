@@ -9,7 +9,8 @@
     </location>
     <location id="id2" x="450" y="-17">
       <name x="450" y="-8">monitoring</name>
-      <label kind="exponentialrate" x="450" y="8">instant_action</label>
+      <label kind="invariant" x="450" y="8">cd_ok + ox_ok + rr_ok + tv_ok &gt;= 1</label>
+      <label kind="exponentialrate" x="450" y="24">instant_action</label>
     </location>
     <location id="id3" x="59" y="-204">
       <name x="0" y="-255">actingB</name>
@@ -71,11 +72,6 @@
       <source ref="id7"/>
       <target ref="id8"/>
     </transition>
-    <transition id="id16">
-      <source ref="id6"/>
-      <target ref="id7"/>
-      <label kind="synchronisation" x="127" y="153">on!</label>
-    </transition>
     <transition id="id17">
       <source ref="id0"/>
       <target ref="id6"/>
@@ -123,11 +119,6 @@
       <label kind="synchronisation" x="178" y="-127">ox1?</label>
       <nail x="246" y="-110"/>
     </transition>
-    <transition id="id25">
-      <source ref="id3"/>
-      <target ref="id4"/>
-      <label kind="synchronisation" x="127" y="-229">on!</label>
-    </transition>
     <transition id="id26">
       <source ref="id0"/>
       <target ref="id3"/>
@@ -169,5 +160,33 @@
     <transition id="id32">
       <source ref="id5"/>
       <target ref="id0"/>
+    </transition>
+    <transition id="id16">
+      <source ref="id3"/>
+      <target ref="id4"/>
+      <label kind="guard" x="119" y="-187">vent_on</label>
+      <nail x="136" y="-187"/>
+    </transition>
+    <transition id="id25">
+      <source ref="id3"/>
+      <target ref="id4"/>
+      <label kind="guard" x="102" y="-272">!vent_on</label>
+      <label kind="synchronisation" x="102" y="-255">on!</label>
+      <label kind="assignment" x="102" y="-238">vent_on=true</label>
+      <nail x="136" y="-221"/>
+    </transition>
+    <transition id="id33">
+      <source ref="id6"/>
+      <target ref="id7"/>
+      <label kind="guard" x="119" y="170">!vent_on</label>
+      <label kind="synchronisation" x="119" y="187">on!</label>
+      <label kind="assignment" x="119" y="204">vent_on=true</label>
+      <nail x="136" y="170"/>
+    </transition>
+    <transition id="id34">
+      <source ref="id6"/>
+      <target ref="id7"/>
+      <label kind="guard" x="119" y="119">vent_on</label>
+      <nail x="136" y="136"/>
     </transition>
   </template>

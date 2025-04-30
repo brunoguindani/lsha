@@ -24,7 +24,7 @@ class MutationFuzzer:
   PATIENT_PATH = os.path.join('..', 'sha_learning', 'resources',
                              'learned_sha', patient_name + '.log')
   OUTPUT_ROOT = os.path.join('generated', 'fuzzing')
-  REMOVABLE_TRANS_IDS = list(range(10, 32))
+  REMOVABLE_TRANS_IDS = list(range(10, 32)) + [33, 34]
   QUERY_FILE = os.path.join('templates', 'requirements.q')
   SIMULATION_QUERY_FILE = os.path.join('templates', 'simulation_query.q')
   QUERY_IDXS = [0, 1, 2]

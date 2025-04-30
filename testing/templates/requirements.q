@@ -1,5 +1,5 @@
 /*
-Reachability of patient stability
+Non-reachability of patient stability
 */
 Pr[<=120]([] (doctor.stable imply patient.unknown))
 

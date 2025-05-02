@@ -37,37 +37,41 @@
     <transition id="id10">
       <source ref="id2"/>
       <target ref="id1"/>
-      <label kind="guard" x="246" y="25">tv&lt;450</label>
-      <label kind="synchronisation" x="255" y="8">rr1?</label>
-      <nail x="255" y="8"/>
+      <label kind="guard" x="297" y="-25">tv&lt;450</label>
+      <label kind="synchronisation" x="297" y="-34">cd1?</label>
     </transition>
     <transition id="id11">
       <source ref="id2"/>
       <target ref="id1"/>
-      <label kind="synchronisation" x="255" y="-76">tv1?</label>
-      <nail x="425" y="-25"/>
-      <nail x="263" y="-51"/>
+      <label kind="synchronisation" x="297" y="0">rr1?</label>
+      <nail x="314" y="8"/>
     </transition>
     <transition id="id12">
       <source ref="id2"/>
-      <target ref="id6"/>
-      <label kind="synchronisation" x="187" y="59">cd3?</label>
+      <target ref="id1"/>
+      <label kind="synchronisation" x="297" y="-59">tv1?</label>
+      <nail x="314" y="-42"/>
     </transition>
     <transition id="id13">
+      <source ref="id2"/>
+      <target ref="id6"/>
+      <label kind="synchronisation" x="187" y="93">cd3?</label>
+    </transition>
+    <transition id="id14">
       <source ref="id8"/>
       <target ref="id2"/>
       <label kind="synchronisation" x="408" y="93">tvol3!</label>
       <label kind="probability" x="408" y="110">1-beta</label>
       <nail x="408" y="93"/>
     </transition>
-    <transition id="id14">
+    <transition id="id15">
       <source ref="id8"/>
       <target ref="id2"/>
       <label kind="synchronisation" x="331" y="51">rera3!</label>
       <label kind="probability" x="331" y="68">beta</label>
       <nail x="331" y="51"/>
     </transition>
-    <transition id="id15" controllable="false">
+    <transition id="id16" controllable="false">
       <source ref="id7"/>
       <target ref="id8"/>
     </transition>
@@ -102,77 +106,73 @@
     <transition id="id22">
       <source ref="id0"/>
       <target ref="id1"/>
-      <label kind="guard" x="51" y="51">tv&lt;450</label>
-      <label kind="synchronisation" x="68" y="34">rr1?</label>
-      <nail x="85" y="25"/>
+      <label kind="synchronisation" x="68" y="0">rr1?</label>
+      <nail x="85" y="8"/>
     </transition>
     <transition id="id23">
       <source ref="id0"/>
       <target ref="id1"/>
-      <label kind="synchronisation" x="68" y="-85">tv1?</label>
-      <nail x="85" y="-59"/>
+      <label kind="synchronisation" x="68" y="-59">tv1?</label>
+      <nail x="85" y="-42"/>
     </transition>
     <transition id="id24">
       <source ref="id2"/>
       <target ref="id3"/>
-      <label kind="synchronisation" x="178" y="-127">ox1?</label>
+      <label kind="synchronisation" x="178" y="-161">ox1?</label>
       <nail x="246" y="-110"/>
     </transition>
-    <transition id="id26">
+    <transition id="id25">
       <source ref="id0"/>
       <target ref="id3"/>
       <label kind="synchronisation" x="-17" y="-127">ox1?</label>
     </transition>
-    <transition id="id27">
-      <source ref="id1"/>
-      <target ref="id2"/>
-      <label kind="synchronisation" x="280" y="-34">on!</label>
-    </transition>
-    <transition id="id28">
+    <transition id="id26">
       <source ref="id2"/>
       <target ref="id2"/>
       <label kind="synchronisation" x="484" y="-59">cd2?</label>
       <nail x="501" y="-25"/>
       <nail x="467" y="-51"/>
     </transition>
-    <transition id="id29">
+    <transition id="id27">
       <source ref="id2"/>
       <target ref="id2"/>
       <label kind="synchronisation" x="484" y="-59">ox2?</label>
       <nail x="501" y="-25"/>
       <nail x="467" y="-51"/>
     </transition>
-    <transition id="id30">
+    <transition id="id28">
       <source ref="id2"/>
       <target ref="id2"/>
       <label kind="synchronisation" x="484" y="-59">rr2?</label>
       <nail x="501" y="-25"/>
       <nail x="467" y="-51"/>
     </transition>
-    <transition id="id31">
+    <transition id="id29">
       <source ref="id2"/>
       <target ref="id2"/>
       <label kind="synchronisation" x="484" y="-59">tv2?</label>
       <nail x="501" y="-25"/>
       <nail x="467" y="-51"/>
     </transition>
-    <transition id="id32">
-      <source ref="id5"/>
-      <target ref="id0"/>
-    </transition>
-    <transition id="id16">
+    <transition id="id30">
       <source ref="id3"/>
       <target ref="id4"/>
       <label kind="guard" x="119" y="-187">vent_on</label>
       <nail x="136" y="-187"/>
     </transition>
-    <transition id="id25">
+    <transition id="id31">
       <source ref="id3"/>
       <target ref="id4"/>
       <label kind="guard" x="102" y="-272">!vent_on</label>
       <label kind="synchronisation" x="102" y="-255">on!</label>
       <label kind="assignment" x="102" y="-238">vent_on=true</label>
       <nail x="136" y="-221"/>
+    </transition>
+    <transition id="id32">
+      <source ref="id0"/>
+      <target ref="id1"/>
+      <label kind="guard" x="68" y="-25">tv&lt;450</label>
+      <label kind="synchronisation" x="68" y="-36">cd1?</label>
     </transition>
     <transition id="id33">
       <source ref="id6"/>
@@ -187,5 +187,26 @@
       <target ref="id7"/>
       <label kind="guard" x="119" y="119">vent_on</label>
       <nail x="136" y="136"/>
+    </transition>
+    <transition id="id35">
+      <source ref="id1"/>
+      <target ref="id2"/>
+      <label kind="guard" x="127" y="59">vent_on</label>
+      <nail x="187" y="68"/>
+    </transition>
+    <transition id="id36">
+      <source ref="id1"/>
+      <target ref="id2"/>
+      <label kind="guard" x="119" y="-119">!vent_on</label>
+      <label kind="synchronisation" x="119" y="-102">on!</label>
+      <label kind="assignment" x="119" y="-85">vent_on=true</label>
+      <nail x="187" y="-102"/>
+    </transition>
+    <transition id="stabletoidle">
+      <source ref="id5"/>
+      <target ref="id0"/>
+      <nail x="1020" y="-297"/>
+      <nail x="-42" y="-297"/>
+      <nail x="-42" y="-110"/>
     </transition>
   </template>

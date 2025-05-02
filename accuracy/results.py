@@ -17,7 +17,7 @@ def plot_and_test_results(num_data: int):
 
   # Read data
   file_path = 'results.xlsx'
-  sheet_name = f'accuracy_{num_data}'
+  sheet_name = 'regression'
   df = pd.read_excel(file_path, sheet_name=sheet_name)
   df_plot = df[columns].iloc[0:num_data]
   df_plot = df_plot.apply(pd.to_numeric, errors='coerce')
@@ -35,7 +35,7 @@ def plot_and_test_results(num_data: int):
   plt.tight_layout()
   # Save plots
   os.makedirs('plots', exist_ok=True)
-  output_file = os.path.join('plots', sheet_name + '.svg')
+  output_file = os.path.join('plots', f'{sheet_name}_{num_data}.svg')
   fig.savefig(output_file)
   plt.close(fig)
 
@@ -44,13 +44,13 @@ def plot_and_test_results(num_data: int):
   tests_rows = []
   for i, j in itertools.combinations(range(len(columns)), 2):
     key, row = analyze_pairwise_stats(df_plot[columns[i]], df_plot[columns[j]],
-                           labels[i], labels[j], 'accuracy')
+                           labels[i], labels[j], 'regression')
     tests_idx.append(key)
     tests_rows.append(row)
 
   df_tests = pd.DataFrame(tests_rows, index=tests_idx)
   print(df_tests)
-  with open(os.path.join('plots', f'{sheet_name}.txt'), 'w') as f:
+  with open(os.path.join('plots', f'{sheet_name}_{num_data}.txt'), 'w') as f:
     f.write(df_tests.to_latex())
 
 

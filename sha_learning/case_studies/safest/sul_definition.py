@@ -72,18 +72,19 @@ if test:
         timed_trace = safest_cs.timed_traces[-1]
         trace = Trace(tt=timed_trace)
 
-        ## Identification of last event and tv value
+        ## Identification of last event and tv values
         tv_signal = [s for s in new_signals if s.label == 'tv'][0]
         last_change_ts = timed_trace.t[-1]
-
         last_point_idx = get_timestamp_index(tv_signal, last_change_ts)
+        chg_values = [int(tv_signal.points[ get_timestamp_index(tv_signal, p.t) ].value) for p in chg_pts][:-1]
         # print(file)
         # print("t-1:", dict(zip(signal_labels, [round(s.points[last_point_idx-1].value, 2) for s in new_signals])))
         # print("t  :", dict(zip(signal_labels, [round(s.points[last_point_idx].value, 2) for s in new_signals])))
-        print(file, ",", int(tv_signal.points[last_point_idx].value), sep="")
+        print(file,
+              '"' + ','.join([e.symbol for e in trace.events]) + '"',
+              '"' + ','.join([str(v) for v in chg_values]) + '"',
+              int(tv_signal.points[last_point_idx].value), sep=",")
 
-        # print(trace, "\n")
-        print(file, '"' + ','.join([e.symbol for e in trace.events]) + '"', int(tv_signal.points[last_point_idx].value), sep=",")
         # Write environment trace in separate file
         env_trace_file = os.path.join(env_traces_folder, file + '.csv')
         with open(env_trace_file, 'w') as f:

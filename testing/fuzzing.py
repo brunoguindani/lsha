@@ -201,7 +201,7 @@ class MutationFuzzer:
       seed_i = base_seed + str(i).zfill(suffix_len)
       cmd = ['verifyta', model_file, self.SIMULATION_QUERY_FILE, '-q', '-r',
              str(seed_i), '--query-index', '0', '-t0']
-      # print(cmd)
+      # print(' '.join(cmd))
       output = subprocess.run(cmd, capture_output=True, text=True).stdout
       # Find and count coverage of locations and transitions
       matches_loc = re.findall(self.LOC_VERIF_REGEX, output)
@@ -225,7 +225,7 @@ class MutationFuzzer:
     """Compute pointwise estimate of probabilistic query"""
     cmd = ['verifyta', model_file, self.QUERY_FILE, '-q', '-r', str(seed),
            '--query-index', str(query_idx)]
-    # print(cmd)
+    # print(' '.join(cmd))
     output = subprocess.run(cmd, capture_output=True, text=True).stdout
     # Find Confidence Interval in output
     match = re.search(self.CI_REGEX, output)

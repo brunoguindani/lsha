@@ -170,7 +170,6 @@ if __name__ == '__main__':
   # fig, axes = plt.subplots(1, queries)
   # for i in range(queries):
   #   col = f'query{i}'
-  #   print(col)
   #   ax = axes[i]
   #   ax.hist(df[col])
   #   ax.set_title(col)

@@ -245,6 +245,7 @@ if __name__ == '__main__':
   write_doctor_patient_automaton(source_path, doctor_path, output_path,
                                  parameters)
   print(output_path)
+  exit()
 
   # Write automata for accuracy tests
   env_traces_folder = os.path.join('..', 'breathe_logs', 'environment_traces',

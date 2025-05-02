@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 import sys
+from tqdm import tqdm
 
 from generate_automata import fixed_params, write_doctor_patient_automaton
 
@@ -150,7 +151,6 @@ class MutationFuzzer:
     sampled transition is not present
     """
     index = self.rng.choice(self.REMOVABLE_TRANS_IDS)
-    print("Removing transition", index)
     return self.remove_transition(model_file, index)
 
   def get_random_parameters(self) -> params_type:
@@ -249,7 +249,7 @@ class MutationFuzzer:
 def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
                                 seed: int):
   """If use_fuzzing is False, parameters will be uniformly randomly sampled"""
-  print("\nSeed:", seed, "\n")
+  print("Seed:", seed)
   iterations = 500
   runs_per_simul = 10
   trans_uniform_prob = 0.5
@@ -268,8 +268,7 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
   # Initialize probabilities
   best_probs = fuzzer.eval_probabilistic_queries(mutant)
 
-  for i in range(iterations):
-    print("Iteration", i)
+  for i in tqdm(range(iterations)):
     # Get new mutant, either by mutation or randomly
     if use_fuzzing:
       mutant = fuzzer.sample_and_mutate()
@@ -289,11 +288,11 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
 
     # If a probability increases, mutant will be stored
     if use_fuzzing:
-      for i in range(len(mutant_probs)):
-        if mutant_probs[i] > best_probs[i]:
-          print(f"Probability {i} increased to {mutant_probs[i]}")
+      for q in range(len(mutant_probs)):
+        if mutant_probs[q] > best_probs[q]:
+          # print(f"Probability {q} increased to {mutant_probs[q]}")
           store = True
-          best_probs[i] = mutant_probs[i]
+          best_probs[q] = mutant_probs[q]
 
       if store:
         fuzzer.store_mutant(mutant)
@@ -311,5 +310,6 @@ if __name__ == '__main__':
   for use_fuzzing in (True, False):
     seed = init_seed
     for i in range(num_experiments):
+      print("Fuzzing" if use_fuzzing else "Random")
       perform_fuzzing_experiments(mutation_factor, use_fuzzing, seed)
       seed += 1

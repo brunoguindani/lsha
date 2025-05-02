@@ -32,7 +32,6 @@ class MonoObjectiveGeneticSearcher(MutationFuzzer):
     for b, trans_id in zip(trans_bools, self.REMOVABLE_TRANS_IDS):
       if b:
         file = self.remove_transition(file, trans_id)
-    print(file)
     return file
 
   def write_to_log(self, *args) -> None:

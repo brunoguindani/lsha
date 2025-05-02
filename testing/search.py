@@ -3,6 +3,8 @@ import pygad
 import re
 import shutil
 import sys
+from tqdm import tqdm
+import warnings
 
 from fuzzing import MutationFuzzer, patient_name
 
@@ -107,12 +109,18 @@ class MultiObjectiveGeneticSearcher(MonoObjectiveGeneticSearcher):
     shutil.rmtree(self.OUTPUT_ROOT, ignore_errors=True)
     os.makedirs(self.OUTPUT_ROOT)
 
-    ga = pygad.GA(num_generations=49, num_parents_mating=5,
-                  fitness_func=self.get_fitness, sol_per_pop=10,
-                  num_genes=self.num_genes, gene_space=self.space,
-                  mutation_percent_genes=20, save_solutions=True,
-                  random_seed=int(self.rng.integers(20250000)))
-    ga.run()
+    generations = 49
+    sol_per_pop = 10
+    total_mutants = (generations+1) * sol_per_pop
+    with tqdm(total=total_mutants) as pbar, warnings.catch_warnings():
+      warnings.filterwarnings('ignore')
+      ga = pygad.GA(num_generations=generations, num_parents_mating=5,
+                    fitness_func=self.get_fitness, sol_per_pop=sol_per_pop,
+                    num_genes=self.num_genes, gene_space=self.space,
+                    mutation_percent_genes=20, save_solutions=True,
+                    random_seed=int(self.rng.integers(20250000)),
+                    on_generation=lambda _: pbar.update(sol_per_pop))
+      ga.run()
     solution, solution_fitness, _ = ga.best_solution()
     print("Fitness values with largest element:", solution_fitness)
     print(f"Pareto front:\n", ga.pareto_fronts, sep="")
@@ -129,7 +137,9 @@ if __name__ == '__main__':
   num_experiments = int(sys.argv[1])
   log_file = 'testing.csv'
 
+  print("\nGenetic")
   for i in range(num_experiments):
+    print("Seed:", seed)
     searcher = MultiObjectiveGeneticSearcher(seed, log_file)
     searcher.run_GA(seed)
     seed += 1

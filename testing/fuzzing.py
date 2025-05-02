@@ -310,6 +310,6 @@ if __name__ == '__main__':
   for use_fuzzing in (True, False):
     seed = init_seed
     for i in range(num_experiments):
-      print("Fuzzing" if use_fuzzing else "Random")
+      print("\nFuzzing" if use_fuzzing else "\nRandom")
       perform_fuzzing_experiments(mutation_factor, use_fuzzing, seed)
       seed += 1

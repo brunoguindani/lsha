@@ -61,16 +61,18 @@ def analyze_pairwise_stats(df_a: pd.DataFrame, df_b: pd.DataFrame,
   return key, result
 
 
-def compare_given_threshold(input_df: pd.DataFrame, threshold_prob: float):
-  prob_to_bool = lambda p: int(p >= threshold_prob)
+def compare_given_threshold(input_df: pd.DataFrame,
+                            threshold_probs: dict[str: float]):
   df = input_df.copy()
-  df[query_cols] = df[query_cols].map(prob_to_bool)
-  df[all_transition_cols] = df[all_transition_cols].astype(int)
-
   stats_def = {}
   stats_real = {}
+  df[all_transition_cols] = df[all_transition_cols].astype(int)
 
   for query in query_cols:
+    threshold = threshold_probs[query]
+    prob_to_bool = lambda p: int(p >= threshold)
+    df[query] = df[query].map(prob_to_bool)
+
     defect_counts = {}
     realistic_counts = {}
     technique_labels = []
@@ -117,7 +119,7 @@ def compare_given_threshold(input_df: pd.DataFrame, threshold_prob: float):
     ax.set_xticks([middle_defect, middle_realistic])
     ax.set_xticklabels(["Defects", "Realistic defects"], fontsize=11)
 
-    ax.set_title(f"{query} - Threshold: {threshold_prob}")
+    ax.set_title(f"{query} - Threshold: {threshold}")
     ax.set_ylabel("Number of mutants")
     ax.tick_params(axis='x')
 
@@ -130,7 +132,7 @@ def compare_given_threshold(input_df: pd.DataFrame, threshold_prob: float):
     ax.legend(handles, technique_labels, title="Techniques", loc="upper right")
 
     plt.tight_layout()
-    file = os.path.join('plots', f'{query}_{threshold_prob:.2f}.svg')
+    file = os.path.join('plots', f'{query}_{threshold:.2f}.svg')
     plt.savefig(file)
     plt.close()
 
@@ -160,7 +162,8 @@ def compare_given_threshold(input_df: pd.DataFrame, threshold_prob: float):
   print(result_real)
 
   full_table = result_def.to_latex() + '\n' + result_real.to_latex()
-  with open(os.path.join('plots', f'{threshold_prob:.2f}.txt'), 'w') as f:
+  table_name = '_'.join([str(v) for v in threshold_probs.values()])
+  with open(os.path.join('plots', f'{table_name}.txt'), 'w') as f:
     f.write(full_table)
 
 if __name__ == '__main__':
@@ -173,8 +176,5 @@ if __name__ == '__main__':
   #   ax.hist(df[col])
   #   ax.set_title(col)
   # plt.show()
-  thresholds = [0.5]
-  for p in thresholds:
-    print(20 * "-", "\nThreshold =", p)
-    compare_given_threshold(df, p)
-    print(20 * "-")
+  thresholds = {'query0': 0.9, 'query1': 0.5, 'query2': 0.5}
+  compare_given_threshold(df, thresholds)

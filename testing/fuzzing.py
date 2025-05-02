@@ -265,14 +265,11 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
   params = {k: (v[0] + v[1])/2 for k, v in fuzzer.params_bounds.items()}
   mutant = fuzzer.write_mutant(initial_model, params)
   fuzzer.store_mutant(mutant)
-  # Initialize coverages
-  loc, trans = fuzzer.compute_elements_coverage(mutant, runs_per_simul)
-  curr_loc_coverage = len(loc)
-  curr_trans_coverage = len(trans)
+  # Initialize probabilities
+  best_probs = fuzzer.eval_probabilistic_queries(mutant)
 
   for i in range(iterations):
     print("Iteration", i)
-    print("Current coverage:", curr_loc_coverage, curr_trans_coverage)
     # Get new mutant, either by mutation or randomly
     if use_fuzzing:
       mutant = fuzzer.sample_and_mutate()
@@ -286,24 +283,21 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
       params = fuzzer.get_random_parameters()
       mutant = fuzzer.write_mutant(mutant, params)
 
-    # If either type of coverage increases, mutant will be stored
-    loc, trans = fuzzer.compute_elements_coverage(mutant, runs_per_simul)
-    num_loc = len(loc)
-    num_trans = len(trans)
-    if num_loc > curr_loc_coverage:
-      print("Location coverage increased to", num_loc)
-      curr_loc_coverage = num_loc
-      fuzzer.store_mutant(mutant)
-    if num_trans > curr_trans_coverage:
-      print("Transition coverage increased to", num_trans)
-      curr_trans_coverage = num_trans
-      fuzzer.store_mutant(mutant)
-    # Get vector of verified boolean properties (0s and 1s)
-    try:
-      is_verified_list = fuzzer.eval_probabilistic_queries(mutant)
-      fuzzer.write_to_log(mutant, *is_verified_list, seed, technique)
-    except RuntimeError:
-      pass
+
+    mutant_probs = fuzzer.eval_probabilistic_queries(mutant)
+    store = False
+
+    # If a probability increases, mutant will be stored
+    if use_fuzzing:
+      for i in range(len(mutant_probs)):
+        if mutant_probs[i] > best_probs[i]:
+          print(f"Probability {i} increased to {mutant_probs[i]}")
+          store = True
+          best_probs[i] = mutant_probs[i]
+
+      if store:
+        fuzzer.store_mutant(mutant)
+    fuzzer.write_to_log(mutant, *mutant_probs, seed, technique)
 
   # Clean up all mutant files
   shutil.rmtree(fuzzer.OUTPUT_ROOT)

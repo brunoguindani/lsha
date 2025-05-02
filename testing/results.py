@@ -32,21 +32,33 @@ def summarize(df: pd.DataFrame, print_prefix: str = ""):
   std = sizes.std()
   print(print_prefix, mean, "±", round(std, 2))
 
-def vargha_delaney(a, b):
-  n1, n2 = len(a), len(b)
-  rank_sum = sum(x > y for x in a for y in b)
-  tie_sum = sum(x == y for x in a for y in b)
+
+def analyze_pairwise_stats(df_a: pd.DataFrame, df_b: pd.DataFrame,
+      name_a: str, name_b: str, query_name: str) -> tuple[str, dict[float]]:
+  key = f"{name_a} vs {name_b}"
+  result = {}
+
+  # Mann-Whitney U test
+  mw_p = mannwhitneyu(df_a, df_b, alternative='two-sided').pvalue
+
+  # Vargha-Delaney A12 effect size
+  n1, n2 = len(df_a), len(df_b)
+  rank_sum = sum(x > y for x in df_a for y in df_b)
+  tie_sum = sum(x == y for x in df_a for y in df_b)
   a12 = (rank_sum + 0.5 * tie_sum) / (n1 * n2)
 
-  # Interpretation based on thresholds
   if 0.44 <= a12 <= 0.56:
-    return "neglig."
+    vd = "neglig."
   elif 0.56 < a12 <= 0.64 or 0.36 <= a12 < 0.44:
-    return "small"
+    vd = "small"
   elif 0.64 < a12 <= 0.71 or 0.29 <= a12 < 0.36:
-    return "medium"
+    vd = "medium"
   else:
-    return "large"
+    vd = "large"
+
+  result[f"MW_{query_name}"] = mw_p
+  result[f"VD_{query_name}"] = vd
+  return key, result
 
 
 def compare_given_threshold(input_df: pd.DataFrame, threshold_prob: float):
@@ -59,19 +71,13 @@ def compare_given_threshold(input_df: pd.DataFrame, threshold_prob: float):
   stats_real = {}
 
   for query in query_cols:
-    # print("Requirement:", query)
-
     defect_counts = {}
     realistic_counts = {}
     technique_labels = []
 
     for tec, group in df.groupby('technique'):
-      # print("Technique", tec)
       group_def = group.loc[group[query] == 1]
       group_def_real = filter(group_def, is_realistic)
-
-      # summarize(group_def, " Defects")
-      # summarize(group_def_real, " of which realistic")
 
       defect_counts[tec] = get_counts(group_def).values
       realistic_counts[tec] = get_counts(group_def_real).values
@@ -130,39 +136,32 @@ def compare_given_threshold(input_df: pd.DataFrame, threshold_prob: float):
 
     # Statistical comparisons
     for t1, t2 in itertools.combinations(technique_labels, 2):
-      key = f"{t1} vs {t2}"
+      key_def, res_def = analyze_pairwise_stats(defect_counts[t1],
+                           defect_counts[t2], str(t1), str(t2), query)
+      key_real, res_real = analyze_pairwise_stats(realistic_counts[t1],
+                           realistic_counts[t2], str(t1), str(t2), query)
 
-      if key not in stats_def:
-        stats_def[key] = {}
-      if key not in stats_real:
-        stats_real[key] = {}
+      if key_def not in stats_def:
+        stats_def[key_def] = {}
+      if key_real not in stats_real:
+        stats_real[key_real] = {}
 
-      # Mann-Whitney U
-      mw_def = mannwhitneyu(defect_counts[t1], defect_counts[t2],
-                            alternative='two-sided').pvalue
-      mw_real = mannwhitneyu(realistic_counts[t1], realistic_counts[t2],
-                             alternative='two-sided').pvalue
-
-      # Vargha-Delaney interpretation
-      vd_def = vargha_delaney(defect_counts[t1], defect_counts[t2])
-      vd_real = vargha_delaney(realistic_counts[t1], realistic_counts[t2])
-
-      stats_def[key][f"MW_{query}"] = mw_def
-      stats_def[key][f"VD_{query}"] = vd_def
-
-      stats_real[key][f"MW_{query}"] = mw_real
-      stats_real[key][f"VD_{query}"] = vd_real
+      stats_def[key_def].update(res_def)
+      stats_real[key_real].update(res_real)
 
   pd.set_option("display.max_columns", None)
 
   print("Tests for defects:")
-  result_def = pd.DataFrame.from_dict(stats_def, orient='index')
-  print(result_def.round(4))
+  result_def = pd.DataFrame.from_dict(stats_def, orient='index').round(4)
+  print(result_def)
 
   print("Tests for realistic defects:")
-  result_real = pd.DataFrame.from_dict(stats_real, orient='index')
-  print(result_real.round(4))
+  result_real = pd.DataFrame.from_dict(stats_real, orient='index').round(4)
+  print(result_real)
 
+  full_table = result_def.to_latex() + '\n' + result_real.to_latex()
+  with open(os.path.join('plots', f'{threshold_prob:.2f}.txt'), 'w') as f:
+    f.write(full_table)
 
 if __name__ == '__main__':
   df = pd.read_csv('testing.csv')

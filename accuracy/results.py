@@ -13,7 +13,7 @@ from testing.results import analyze_pairwise_stats
 def plot_and_test_results(num_data: int):
   columns = ['rel_lsha', 'rel_dual', 'rel_xgb']
   labels = ['$L^*_{sha}$', 'Neural Network', 'XGBoost']
-  colors = ['lightblue', 'lightgreen', 'lightcoral']
+  # colors = ['lightblue', 'lightgreen', 'lightcoral']
 
   # Read data
   file_path = 'results.xlsx'
@@ -25,17 +25,17 @@ def plot_and_test_results(num_data: int):
 
   # Plot data
   fig, ax = plt.subplots(figsize=(6, 5))
-  box = ax.boxplot([df_plot[col] for col in columns], patch_artist=True,
+  box = ax.boxplot([df_plot[col] for col in columns], # patch_artist=True,
                     widths=0.4, medianprops=dict(color='red'))
-  for patch, color in zip(box['boxes'], colors):
-    patch.set_facecolor(color)
+  # for patch, color in zip(box['boxes'], colors):
+  #   patch.set_facecolor(color)
   ax.set_xticklabels(labels, fontsize=12)
   ax.tick_params(axis='y', labelsize=11)
   ax.grid(axis='y')
   plt.tight_layout()
   # Save plots
   os.makedirs('plots', exist_ok=True)
-  output_file = os.path.join('plots', f'{sheet_name}_{num_data}.svg')
+  output_file = os.path.join('plots', f'{sheet_name}_{num_data}.pdf')
   fig.savefig(output_file)
   plt.close(fig)
 
@@ -49,12 +49,11 @@ def plot_and_test_results(num_data: int):
     tests_rows.append(row)
 
   df_tests = pd.DataFrame(tests_rows, index=tests_idx)
+  df_tests.columns = ['M-W $p$-value', '$\\hat{A}_{12}$']
   print(df_tests)
   with open(os.path.join('plots', f'{sheet_name}_{num_data}.txt'), 'w') as f:
-    f.write(df_tests.to_latex())
+    f.write(df_tests.to_latex(label='tab:regression'))
 
 
 if __name__ == '__main__':
-  for num in (20, 30):
-    print(num)
-    plot_and_test_results(num)
+  plot_and_test_results(20)

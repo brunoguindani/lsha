@@ -56,8 +56,8 @@ def analyze_pairwise_stats(df_a: pd.DataFrame, df_b: pd.DataFrame,
   else:
     vd = "large"
 
-  result[f"MW_{query_name}"] = mw_p
-  result[f"VD_{query_name}"] = vd
+  result[f"MW {query_name}"] = mw_p
+  result[f"VD {query_name}"] = vd
   return key, result
 
 
@@ -68,7 +68,7 @@ def compare_given_threshold(input_df: pd.DataFrame,
   stats_real = {}
   df[all_transition_cols] = df[all_transition_cols].astype(int)
 
-  for query in query_cols:
+  for i, query in enumerate(query_cols):
     threshold = threshold_probs[query]
     prob_to_bool = lambda p: int(p >= threshold)
     df[query] = df[query].map(prob_to_bool)
@@ -87,28 +87,28 @@ def compare_given_threshold(input_df: pd.DataFrame,
 
     # Plotting
     n = len(technique_labels)
-    gap = 1
+    gap = 0
     defect_positions = list(range(n))
     realistic_positions = list(range(n + gap, 2 * n + gap))
 
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(4, 5))
 
     cmap = plt.get_cmap('tab10')
-    colors = [cmap(i % 10) for i in range(n)]
-    box_width = 0.6
+    colors = [cmap(_ % 10) for _ in range(n)]
+    box_width = 0.5
 
-    for i, tec in enumerate(technique_labels):
+    for j, tec in enumerate(technique_labels):
       def_data = defect_counts[tec]
       real_data = realistic_counts[tec]
-      color = colors[i]
+      color = colors[j]
 
-      bp_def = ax.boxplot(def_data, positions=[defect_positions[i]],
+      bp_def = ax.boxplot(def_data, positions=[defect_positions[j]],
                           widths=box_width, patch_artist=True,
                           medianprops=dict(color='red'))
       for patch in bp_def['boxes']:
         patch.set_facecolor(color)
 
-      bp_real = ax.boxplot(real_data, positions=[realistic_positions[i]],
+      bp_real = ax.boxplot(real_data, positions=[realistic_positions[j]],
                            widths=box_width, patch_artist=True,
                            medianprops=dict(color='red'))
       for patch in bp_real['boxes']:
@@ -119,7 +119,7 @@ def compare_given_threshold(input_df: pd.DataFrame,
     ax.set_xticks([middle_defect, middle_realistic])
     ax.set_xticklabels(["Defects", "Realistic defects"], fontsize=11)
 
-    ax.set_title(f"{query} - Threshold: {threshold}")
+    ax.set_title(f"Requirement {i+1} - Threshold: {threshold}")
     ax.set_ylabel("Number of mutants")
     ax.tick_params(axis='x')
 
@@ -132,7 +132,7 @@ def compare_given_threshold(input_df: pd.DataFrame,
     ax.legend(handles, technique_labels, title="Techniques", loc="upper right")
 
     plt.tight_layout()
-    file = os.path.join('plots', f'{query}_{threshold:.2f}.svg')
+    file = os.path.join('plots', f'testing_{query}_{threshold:.2f}.pdf')
     plt.savefig(file)
     plt.close()
 
@@ -154,14 +154,15 @@ def compare_given_threshold(input_df: pd.DataFrame,
   pd.set_option("display.max_columns", None)
 
   print("Tests for defects:")
-  result_def = pd.DataFrame.from_dict(stats_def, orient='index').round(4)
+  result_def = pd.DataFrame.from_dict(stats_def, orient='index').round(3)
   print(result_def)
 
   print("Tests for realistic defects:")
-  result_real = pd.DataFrame.from_dict(stats_real, orient='index').round(4)
+  result_real = pd.DataFrame.from_dict(stats_real, orient='index').round(3)
   print(result_real)
 
-  full_table = result_def.to_latex() + '\n' + result_real.to_latex()
+  full_table = result_def.to_latex() + '\n' + \
+               result_real.to_latex(label='tab:testing')
   table_name = '_'.join([str(v) for v in threshold_probs.values()])
   with open(os.path.join('plots', f'{table_name}.txt'), 'w') as f:
     f.write(full_table)

@@ -26,4 +26,4 @@ ax.grid()
 ax.legend()
 ax.set_xlabel(case)
 
-fig.savefig(f'{case}.svg', bbox_inches='tight')
+fig.savefig(f'scalability_lsha_{case}.pdf', bbox_inches='tight')

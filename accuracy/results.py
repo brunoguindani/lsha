@@ -12,7 +12,7 @@ from testing.results import analyze_pairwise_stats
 
 def plot_and_test_results(num_data: int):
   columns = ['rel_lsha', 'rel_dual', 'rel_xgb']
-  labels = ['$L^*_{sha}$', 'Neural Network', 'XGBoost']
+  labels = ['$L^*_{sha}$', 'Neural\nNetwork', 'XGBoost']
   # colors = ['lightblue', 'lightgreen', 'lightcoral']
 
   # Read data
@@ -24,14 +24,14 @@ def plot_and_test_results(num_data: int):
   df_plot = df_plot.dropna()
 
   # Plot data
-  fig, ax = plt.subplots(figsize=(6, 5))
+  fig, ax = plt.subplots(figsize=(4, 4))
   box = ax.boxplot([df_plot[col] for col in columns], # patch_artist=True,
                     widths=0.4, medianprops=dict(color='red'))
   # for patch, color in zip(box['boxes'], colors):
   #   patch.set_facecolor(color)
   ax.set_xticklabels(labels, fontsize=12)
   ax.tick_params(axis='y', labelsize=11)
-  ax.grid(axis='y')
+  ax.grid(axis='y', alpha=0.45)
   plt.tight_layout()
   # Save plots
   os.makedirs('plots', exist_ok=True)
@@ -48,8 +48,9 @@ def plot_and_test_results(num_data: int):
     tests_idx.append(key)
     tests_rows.append(row)
 
-  df_tests = pd.DataFrame(tests_rows, index=tests_idx)
-  df_tests.columns = ['M-W $p$-value', '$\\hat{A}_{12}$']
+  to_exp = lambda x: f'{x:.2e}' if isinstance(x, float) else x
+  df_tests = pd.DataFrame(tests_rows, index=tests_idx).map(to_exp)
+  df_tests.columns = ['\\mw{}', '\\vd{}']
   print(df_tests)
   with open(os.path.join('plots', f'{sheet_name}_{num_data}.txt'), 'w') as f:
     f.write(df_tests.to_latex(label='tab:regression'))

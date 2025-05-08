@@ -16,7 +16,7 @@ events_mean.columns = column_labels
 events_std.columns = column_labels
 x_values = events_mean.index
 
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(4, 4))
 for col in column_labels:
   mean = events_mean[col]
   std = events_std[col]

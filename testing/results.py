@@ -44,13 +44,13 @@ def analyze_pairwise_stats(df_a: pd.Series, df_b: pd.Series,
   a12 = (rank_sum + 0.5 * tie_sum) / (n1 * n2)
 
   if 0.44 <= a12 <= 0.56:
-    vd = "neglig."
+    vd = "N"
   elif 0.56 < a12 <= 0.64 or 0.36 <= a12 < 0.44:
-    vd = "small"
+    vd = "S"
   elif 0.64 < a12 <= 0.71 or 0.29 <= a12 < 0.36:
-    vd = "medium"
+    vd = "M"
   else:
-    vd = "large"
+    vd = "L"
 
   result[f"MW {query_name}"] = mw_p
   result[f"VD {query_name}"] = vd
@@ -88,7 +88,7 @@ def compare_given_threshold(input_df: pd.DataFrame,
     defect_positions = list(range(n))
     realistic_positions = list(range(n + gap, 2 * n + gap))
 
-    fig, ax = plt.subplots(figsize=(4, 5))
+    fig, ax = plt.subplots(figsize=(4, 4))
 
     cmap = plt.get_cmap('tab10')
     colors = [cmap(_ % 10) for _ in range(n)]
@@ -101,23 +101,23 @@ def compare_given_threshold(input_df: pd.DataFrame,
 
       bp_def = ax.boxplot(def_data, positions=[defect_positions[j]],
                           widths=box_width, patch_artist=True,
-                          medianprops=dict(color='red'))
+                          medianprops=dict(color='red', lw=0.3))
       for patch in bp_def['boxes']:
         patch.set_facecolor(color)
 
       bp_real = ax.boxplot(real_data, positions=[realistic_positions[j]],
                            widths=box_width, patch_artist=True,
-                           medianprops=dict(color='red'))
+                           medianprops=dict(color='red', lw=0.3))
       for patch in bp_real['boxes']:
         patch.set_facecolor(color)
 
     middle_defect = sum(defect_positions) / len(defect_positions)
     middle_realistic = sum(realistic_positions) / len(realistic_positions)
     ax.set_xticks([middle_defect, middle_realistic])
-    ax.set_xticklabels(["Defects", "Realistic defects"], fontsize=11)
+    ax.set_xticklabels(["Total failures", "Realistic failures"], fontsize=11)
 
     ax.set_title(f"Requirement {i+1} - Threshold: {threshold}")
-    ax.set_ylabel("Fraction of mutants")
+    ax.set_ylabel("Fraction of individuals")
     ax.tick_params(axis='x')
 
     ax.set_yticks([i / 10.0 for i in range(0, 11)])
@@ -143,13 +143,14 @@ def compare_given_threshold(input_df: pd.DataFrame,
       stats_real.setdefault(key_real, {}).update(res_real)
 
   pd.set_option("display.max_columns", None)
+  to_exp = lambda x: f'{x:.2e}' if isinstance(x, float) else x
 
-  print("Tests for defects:")
-  result_def = pd.DataFrame.from_dict(stats_def, orient='index').round(3)
+  print("Tests for failures:")
+  result_def = pd.DataFrame.from_dict(stats_def, orient='index').map(to_exp)
   print(result_def)
 
-  print("Tests for realistic defects:")
-  result_real = pd.DataFrame.from_dict(stats_real, orient='index').round(3)
+  print("Tests for realistic failures:")
+  result_real = pd.DataFrame.from_dict(stats_real, orient='index').map(to_exp)
   print(result_real)
 
   full_table = result_def.to_latex() + '\n' + \
@@ -158,8 +159,31 @@ def compare_given_threshold(input_df: pd.DataFrame,
   with open(os.path.join('plots', f'{table_name}.txt'), 'w') as f:
     f.write(full_table)
 
+
+def plot_times(df: pd.DataFrame):
+  fig, ax = plt.subplots(figsize=(4, 4))
+  groups = []
+  labels = []
+  for tec, group in df.groupby('technique'):
+    groups.append(group['time'])
+    labels.append(tec)
+  box = ax.boxplot(groups, tick_labels=labels, widths=0.4,
+                    medianprops=dict(color='red', lw=0.3))
+  # ax.set_xticklabels(labels, fontsize=12)
+  ax.tick_params(axis='y', labelsize=11)
+  ax.grid(axis='y', alpha=0.45)
+  ax.set_ylabel('execution time [s]')
+  plt.tight_layout()
+  # Save plots
+  os.makedirs('plots', exist_ok=True)
+  output_file = os.path.join('plots', 'testing_times.pdf')
+  fig.savefig(output_file)
+  plt.close(fig)
+
+
 if __name__ == '__main__':
-  df = pd.read_csv('testing.csv')
+  df = pd.read_csv('testing_final_bak.csv')
+  times = pd.read_csv('times.csv')
   # queries = 3
   # fig, axes = plt.subplots(1, queries)
   # for i in range(queries):
@@ -170,3 +194,4 @@ if __name__ == '__main__':
   # plt.show()
   thresholds = {'query0': 0.9, 'query1': 0.5, 'query2': 0.5}
   compare_given_threshold(df, thresholds)
+  plot_times(times)

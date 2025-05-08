@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from tqdm import tqdm
 
 from generate_automata import fixed_params, write_doctor_patient_automaton
@@ -257,6 +258,7 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
   technique = 'fuzzing' if use_fuzzing else 'random'
 
   # Initialize fuzzer and clean up output folder
+  start = time.time()
   fuzzer = MutationFuzzer(mutation_factor, seed, log_file)
   shutil.rmtree(fuzzer.OUTPUT_ROOT, ignore_errors=True)
   os.makedirs(fuzzer.OUTPUT_ROOT)
@@ -297,6 +299,11 @@ def perform_fuzzing_experiments(mutation_factor: float, use_fuzzing: bool,
       if store:
         fuzzer.store_mutant(mutant)
     fuzzer.write_to_log(mutant, *mutant_probs, seed, technique)
+
+  # Write execution time
+  ex_time = time.time() - start
+  with open('times.csv', 'a') as f:
+    f.write(f'{seed},{technique},{ex_time}\n')
 
   # Clean up all mutant files
   shutil.rmtree(fuzzer.OUTPUT_ROOT)

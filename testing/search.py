@@ -3,6 +3,7 @@ import pygad
 import re
 import shutil
 import sys
+import time
 from tqdm import tqdm
 import warnings
 
@@ -112,6 +113,7 @@ class MultiObjectiveGeneticSearcher(MonoObjectiveGeneticSearcher):
     generations = 49
     sol_per_pop = 10
     total_mutants = (generations+1) * sol_per_pop
+    start = time.time()
     with tqdm(total=total_mutants) as pbar, warnings.catch_warnings():
       warnings.filterwarnings('ignore')
       ga = pygad.GA(num_generations=generations, num_parents_mating=5,
@@ -121,6 +123,11 @@ class MultiObjectiveGeneticSearcher(MonoObjectiveGeneticSearcher):
                     random_seed=int(self.rng.integers(20250000)),
                     on_generation=lambda _: pbar.update(sol_per_pop))
       ga.run()
+    # Write execution time
+    ex_time = time.time() - start
+    with open('times.csv', 'a') as f:
+      f.write(f'{seed},genetic,{ex_time}\n')
+
     solution, solution_fitness, _ = ga.best_solution()
     print("Fitness values with largest element:", solution_fitness)
     print(f"Pareto front:\n", ga.pareto_fronts, sep="")

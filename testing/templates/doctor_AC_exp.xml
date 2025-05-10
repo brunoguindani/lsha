@@ -9,6 +9,7 @@
     </location>
     <location id="id2" x="450" y="-17">
       <name x="450" y="-8">monitoring</name>
+      <label kind="invariant" x="450" y="24">cd_ok + ox_ok + rr_ok + tv_ok &lt;= 4</label>
       <label kind="exponentialrate" x="450" y="8">instant_action</label>
     </location>
     <location id="id3" x="59" y="-204">
@@ -83,7 +84,7 @@
     <transition id="id18">
       <source ref="id2"/>
       <target ref="id5"/>
-      <label kind="guard" x="654" y="-35">cd_ok &amp;&amp; ox_ok &amp;&amp; rr_ok &amp;&amp; tv_ok</label>
+      <label kind="guard" x="654" y="-35">cd_ok + ox_ok + rr_ok + tv_ok == 4</label>
     </transition>
     <transition id="id19" controllable="false">
       <source ref="id4"/>

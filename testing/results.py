@@ -116,7 +116,6 @@ def compare_given_threshold(input_df: pd.DataFrame,
     ax.set_xticks([middle_defect, middle_realistic])
     ax.set_xticklabels(["Total failures", "Realistic failures"], fontsize=11)
 
-    ax.set_title(f"Requirement {i+1} - Threshold: {threshold}")
     ax.set_ylabel("Fraction of individuals")
     ax.tick_params(axis='x')
 
@@ -182,9 +181,13 @@ def plot_times(df: pd.DataFrame):
 
 
 if __name__ == '__main__':
-  df = pd.read_csv('testing_final_bak.csv')
+  df = pd.read_csv('testing.csv')
   times = pd.read_csv('times.csv')
-  # queries = 3
+
+  df = df.replace('genetic', 'search-based')
+  times = times.replace('genetic', 'search-based')
+
+  queries = 3
   # fig, axes = plt.subplots(1, queries)
   # for i in range(queries):
   #   col = f'query{i}'

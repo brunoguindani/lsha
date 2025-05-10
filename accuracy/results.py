@@ -12,7 +12,7 @@ from testing.results import analyze_pairwise_stats
 
 def plot_and_test_results(num_data: int):
   columns = ['rel_lsha', 'rel_dual', 'rel_xgb']
-  labels = ['$L^*_{sha}$', 'Neural\nNetwork', 'XGBoost']
+  labels = ['$L^*_{sha}$', 'Neural Network', 'XGBoost']
   # colors = ['lightblue', 'lightgreen', 'lightcoral']
 
   # Read data
@@ -27,6 +27,8 @@ def plot_and_test_results(num_data: int):
   fig, ax = plt.subplots(figsize=(4, 4))
   box = ax.boxplot([df_plot[col] for col in columns], # patch_artist=True,
                     widths=0.4, medianprops=dict(color='red'))
+  for col in columns:
+    print(col, "median =", df_plot[col].median())
   # for patch, color in zip(box['boxes'], colors):
   #   patch.set_facecolor(color)
   ax.set_xticklabels(labels, fontsize=12)
